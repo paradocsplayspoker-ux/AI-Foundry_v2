@@ -1,7 +1,7 @@
 ---
-title: "Running an Autonomous Development Loop"
+title: "Run an Autonomous Agent Development Loop in AI Forge"
 sidebarTitle: "Autonomous Dev"
-description: "Configure agents to plan, code, test, and fix in a continuous loop with minimal intervention — and stay in control the whole time."
+description: "Configure your agent team to plan, write code, run tests, and fix bugs in a continuous autonomous loop — with full human override at any point."
 ---
 
 AI Forge's autonomous development loop lets your agent team take a task from requirements all the way to passing tests without you steering every step. The Architect plans, the Developer writes and fixes code, the QA Engineer validates, and the Security Engineer reviews — all inside a real IDE with a shared filesystem and terminal. You watch the activity feed, intervene whenever you like, and review every file change as a diff before it's permanent.
@@ -12,7 +12,7 @@ AI Forge's autonomous development loop lets your agent team take a task from req
 
 The autonomous loop follows a repeating cycle until the task is complete or an agent signals a blocker that requires human input.
 
-```
+```text
 Architect → creates plan
     ↓
 Developer → reads relevant files
@@ -73,7 +73,7 @@ In your project settings, navigate to **Execution Mode** and select **AUTO_APPLY
 
 Open the **Chatroom**, confirm your agents are active, and send a task with enough context for the Architect to produce a plan:
 
-```
+```text
 Implement a user authentication system using JWT. 
 Requirements: POST /auth/register, POST /auth/login, 
 GET /auth/me (protected). Use the existing Express setup 
@@ -90,7 +90,7 @@ The agents will begin immediately. You do not need to say anything else unless y
 
 While the loop runs, the **Activity Feed** (right panel) shows every tool call in real time. Each entry displays the agent name, the tool used, and the target file or command.
 
-```
+```text
 💻 Developer      FILE_READ       src/index.js
 💻 Developer      FILE_READ       src/middleware/auth.js   [not found]
 🗺  Architect      FILE_WRITE      docs/auth-spec.md

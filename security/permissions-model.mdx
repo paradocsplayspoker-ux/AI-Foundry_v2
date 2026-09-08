@@ -1,7 +1,7 @@
 ---
-title: "Understanding the AI Forge Permissions Model"
+title: "AI Forge: Per-Agent Permissions and Execution Modes"
 sidebarTitle: "Permissions Model"
-description: "Learn how AI Forge enforces per-agent permissions and project-level execution modes to keep your codebase safe."
+description: "Learn how AI Forge enforces per-agent permission flags, project-level execution modes, and credential isolation to keep your codebase safe."
 ---
 
 AI Forge uses a layered security model to give you precise control over what each agent can do. Every permission check is enforced on the server — agents cannot override or bypass restrictions by claiming elevated access on the client side. This means that even if an agent's response asserts it has a capability, the server will reject any action not explicitly permitted by your configuration.
@@ -55,9 +55,9 @@ SAFE_MODE is the most restrictive execution mode. It blocks all destructive oper
 
 ## Credential Isolation
 
-When you store a provider API key in AI Forge, it is saved server-side — either as an environment variable or in an encrypted keystore. **Credentials are never returned to the browser after storage.** The key is used by the server to authenticate requests on your behalf; at no point does it travel back to the frontend or appear in agent messages.
+When you store a provider API key in AI Forge, it is saved server-side in encrypted secure storage. **Credentials are never returned to the browser after storage.** The key is used by the server to authenticate requests on your behalf; at no point does it travel back to the frontend or appear in agent messages.
 
-This design ensures that even if an agent attempted to exfiltrate credentials by asking the server to echo them, the server would have no mechanism to fulfill that request. The credential lives only in the server-side secure storage layer and is injected directly into outbound API calls.
+This design ensures that even if an agent attempted to exfiltrate credentials, the server has no mechanism to surface them. Credentials live only in server-side secure storage and are injected directly into outbound API calls — they are never visible inside the agent's execution environment.
 
 <Note>
 If you need to rotate a key, add the new credential in **Settings → Providers**, then delete the old one. Agents will automatically use the updated credential on their next request.

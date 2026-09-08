@@ -1,7 +1,7 @@
 ---
 title: "Creating and Configuring Agents in AI Forge"
 sidebarTitle: "Creating Agents"
-description: "Follow this step-by-step guide to create, configure, and deploy a new agent — from naming it to adding it to a live chatroom."
+description: "Follow this step-by-step guide to create, configure, and deploy a new agent — covering every field from system prompt to permissions and autonomy level."
 ---
 
 Creating an agent in AI Forge takes only a few minutes, but the decisions you make during configuration — system prompt, permissions, and autonomy level — have a large impact on how useful and safe that agent will be in practice. This guide walks you through every field so you understand what each setting does and can make confident choices from the start.
@@ -32,7 +32,7 @@ Creating an agent in AI Forge takes only a few minutes, but the decisions you ma
   </Step>
 
   <Step title="Select a Provider and Model">
-    Choose the **Provider** (for example, OpenAI, Anthropic, or Mistral) from the dropdown, then select the specific **Model** that provider offers (for example, `gpt-4o`, `claude-3-5-sonnet-20241022`, or `mistral-large-latest`).
+    Choose the **Provider** (for example, OpenAI, Anthropic, or Google Gemini) from the dropdown, then select the specific **Model** that provider offers (for example, `gpt-4o`, `claude-3-5-sonnet-20241022`, or `gemini-1.5-pro`).
 
     Next, select a **Credential** — a saved API key or OAuth token for that provider. If you haven't added credentials yet, click **Manage Credentials** to add one before continuing.
 
@@ -43,7 +43,7 @@ Creating an agent in AI Forge takes only a few minutes, but the decisions you ma
     The system prompt is the most important field. It defines the agent's expertise, communication style, constraints, and personality. Write it in second person addressing the agent ("You are…") and be specific about what the agent should and should not do.
 
     **Example: Developer Agent**
-    ```
+    ```text
     You are a senior full-stack developer specializing in TypeScript, React, and Node.js.
     Your job is to implement features, fix bugs, and write clean, well-tested code.
     Always follow the existing code style in the repository. Before writing any code,
@@ -53,7 +53,7 @@ Creating an agent in AI Forge takes only a few minutes, but the decisions you ma
     ```
 
     **Example: Security Agent**
-    ```
+    ```text
     You are a staff application security engineer. Your job is to review code changes
     for vulnerabilities including but not limited to: injection attacks, authentication
     flaws, insecure deserialization, broken access control, and sensitive data exposure.

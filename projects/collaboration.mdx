@@ -1,7 +1,7 @@
 ---
 title: "Collaborating with Agents in AI Forge"
 sidebarTitle: "Collaboration"
-description: "Use chatrooms to direct agents by concern, mention specific agents with @, and track every action in the project activity feed."
+description: "Use chatrooms, @mentions, and real-time activity streaming to direct your AI agent team and track every action taken across your AI Forge project."
 ---
 
 AI Forge is designed around real collaboration between human directors and teams of specialized AI agents. Within each project you get a flexible chatroom system — create as many rooms as you need, organize them by concern, and control exactly which agents are listening in each one. The activity feed gives you a running record of everything that has happened, so you always know what each agent did and when.
@@ -35,15 +35,39 @@ Type your message in the input box at the bottom of the room and press **Enter**
 
 To direct a message at one particular agent without excluding others, use the `@` mention syntax:
 
-```
+```text
 @Developer please refactor the authentication module to use JWTs.
 ```
 
 The mentioned agent is prompted to respond first, but other agents in the room can still see the message and react if relevant to their role. Use `@` mentions when you need a specific agent to take ownership of a task, rather than opening it up to the whole room.
 
+## Project execution modes
+
+Each project can be placed in one of three execution modes that control how agent-proposed changes are applied. You can change the mode at any time in **Settings → Project Settings**.
+
+<Tabs>
+  <Tab title="ASK_BEFORE_CHANGES">
+    **Ask Before Changes** is the default mode for new projects. Agents propose every file write and terminal command as a diff for you to review before anything is actually applied. You approve or reject each change individually, keeping you in full control of what lands in the filesystem.
+
+    <Tip>
+      Use this mode when working on critical or production-adjacent code where you want to review every change before it takes effect.
+    </Tip>
+  </Tab>
+  <Tab title="AUTO_APPLY">
+    **Auto Apply** lets agents write files and run commands without waiting for your approval. Changes are applied immediately as agents produce them, which is ideal for rapid prototyping or bulk scaffolding tasks where reviewing each step individually would slow you down.
+
+    <Warning>
+      In AUTO_APPLY mode, agent-written changes go live instantly. Use the activity feed and diff snapshots to track and roll back anything unexpected.
+    </Warning>
+  </Tab>
+  <Tab title="SAFE_MODE">
+    **Safe Mode** restricts agents to read-only filesystem access — they can read files and produce suggestions, but cannot write, delete, or execute anything. This is useful for code-review or analysis workflows where you want agent insight without any risk of modification.
+  </Tab>
+</Tabs>
+
 ## Reading the activity feed
 
-The **Activity** tab in the left sidebar shows a chronological log of everything that has happened in your project across all rooms and agent sessions. Each entry records:
+The **Activity** tab in the left sidebar shows a real-time, chronological log of everything that has happened in your project across all rooms and agent sessions. The feed is streamed live over a server-sent events (SSE) connection, so new entries appear the moment they occur — no page refresh required. Each entry records:
 
 | Field | Description |
 |-------|-------------|

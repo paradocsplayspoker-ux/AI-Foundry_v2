@@ -1,7 +1,7 @@
 ---
-title: "AI Forge Settings Reference Guide"
+title: "AI Forge Settings: Complete Configuration Reference"
 sidebarTitle: "Settings"
-description: "A complete reference for every setting in AI Forge, from theme and providers to security modes and orchestration defaults."
+description: "A complete reference for every AI Forge setting — theme, providers, agent defaults, workspace, terminal, orchestration, and security modes."
 ---
 
 AI Forge gives you fine-grained control over how the workspace looks, how agents behave, and how much autonomy they are granted. All settings are persistent across sessions and apply to your account globally unless noted otherwise. This page describes every available setting and what it does.
@@ -34,7 +34,7 @@ Manage the AI provider credentials that power your agents. AI Forge supports mul
     Open Settings and select the **Providers** tab.
   </Step>
   <Step title="Select your provider">
-    Choose the provider from the dropdown (e.g. OpenAI, Anthropic, Google, Mistral).
+    Choose the provider from the dropdown (e.g. OpenAI, Anthropic, Google Gemini, xAI/Grok, Groq, OpenRouter, Cerebras, NVIDIA, Hugging Face, Perplexity, or a custom OpenAI-compatible endpoint).
   </Step>
   <Step title="Paste your API key">
     Enter your API key in the credential field. The key is stored server-side immediately on save and is never displayed again.
@@ -95,7 +95,7 @@ Set defaults for how multi-agent orchestration sessions are configured.
 
 | Setting | Options | Description |
 |---|---|---|
-| **Default Orchestration Mode** | Sequential, Parallel, Debate | The mode applied when you start a new orchestration session without explicitly choosing one. |
+| **Default Orchestration Mode** | Freeform, Debate, Research, Code Review, Red Team/Blue Team, Expert Panel, Socratic, Synthesis, Autonomous Development | The mode applied when you start a new orchestration session without explicitly choosing one. |
 | **Debate Round Count** | 1–10 | When using **Debate** mode, this controls how many rounds of back-and-forth agents complete before the orchestrator synthesizes a final answer. Higher round counts produce more refined outputs but consume more tokens and time. |
 | **Auto-assign Director** | On / Off | When enabled, AI Forge automatically designates the most capable available agent as the director for each new orchestration session. |
 </Accordion>

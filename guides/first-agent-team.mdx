@@ -1,7 +1,7 @@
 ---
-title: "Build Your First Agent Team in AI Forge"
+title: "Build Your First AI Forge Multi-Agent Team from Scratch"
 sidebarTitle: "First Agent Team"
-description: "Create a four-agent team of Architect, Developer, Security Engineer, and QA Engineer to plan, build, secure, and test your software."
+description: "Create a four-agent team — Architect, Developer, Security Engineer, and QA Engineer — to plan, build, secure, and test your software."
 ---
 
 Every project in AI Forge runs on collaboration between specialized agents. Rather than a single generalist assistant, you assemble a team where each agent owns a distinct role, has a tailored system prompt, and operates with exactly the permissions it needs — nothing more. This guide walks you through creating your first four-agent team and sending them their first real task.
@@ -42,7 +42,7 @@ Fill in the agent form with the following details.
 **Role name:** `Architect`
 
 **System prompt:**
-```
+```text
 You are a senior software architect. Your job is to analyze requirements,
 design system components, define API contracts, and produce clear technical
 specifications before any code is written. Think in terms of modules,
@@ -58,7 +58,8 @@ implementation code yourself — your output is specifications only.
 | `write_files` | ❌ |
 | `execute_commands` | ❌ |
 | `delete_files` | ❌ |
-| `run_tests` | ❌ |
+| `install_packages` | ❌ |
+| `network_access` | ❌ |
 
 <Tip>
   Restricting the Architect to read-only access enforces the separation of concerns — it can inspect the codebase for context but can never accidentally overwrite a file mid-design.
@@ -69,7 +70,7 @@ implementation code yourself — your output is specifications only.
 **Role name:** `Developer`
 
 **System prompt:**
-```
+```text
 You are a senior full-stack developer. You receive technical specifications
 from the Architect and turn them into working code. You read existing files
 before editing them, write clean and well-commented implementations, run
@@ -85,10 +86,11 @@ Report blockers to the team rather than guessing at requirements.
 | `write_files` | ✅ |
 | `execute_commands` | ✅ |
 | `delete_files` | ❌ |
-| `run_tests` | ✅ |
+| `install_packages` | ✅ |
+| `network_access` | ❌ |
 
 <Note>
-  `delete_files` is left off intentionally. If the Developer needs to remove a file, it can flag it for your review rather than deleting it autonomously.
+  `delete_files` is left off intentionally. If the Developer needs to remove a file, it can flag it for your review rather than deleting it autonomously. `network_access` is also disabled — package installation goes through `install_packages`, keeping outbound network calls explicit.
 </Note>
 
 ### Create the Security Engineer
@@ -96,7 +98,7 @@ Report blockers to the team rather than guessing at requirements.
 **Role name:** `Security Engineer`
 
 **System prompt:**
-```
+```text
 You are an application security engineer. You review source code, dependency
 manifests, configuration files, and environment variable usage for security
 vulnerabilities. Look for injection risks, insecure defaults, hardcoded
@@ -113,7 +115,8 @@ concrete remediation step. Do not modify files — your role is analysis only.
 | `write_files` | ❌ |
 | `execute_commands` | ❌ |
 | `delete_files` | ❌ |
-| `run_tests` | ❌ |
+| `install_packages` | ❌ |
+| `network_access` | ❌ |
 
 <Warning>
   Never grant the Security Engineer write or execute permissions. A read-only security agent cannot be leveraged to exfiltrate data or modify files if its behavior ever falls outside expectations.
@@ -124,7 +127,7 @@ concrete remediation step. Do not modify files — your role is analysis only.
 **Role name:** `QA Engineer`
 
 **System prompt:**
-```
+```text
 You are a quality assurance engineer. You write unit tests, integration tests,
 and end-to-end tests for features delivered by the Developer. You run the
 project's test suite, read the output carefully, identify failing tests,
@@ -140,7 +143,8 @@ and fix it without re-running the suite themselves.
 | `write_files` | ✅ |
 | `execute_commands` | ✅ |
 | `delete_files` | ❌ |
-| `run_tests` | ✅ |
+| `install_packages` | ✅ |
+| `network_access` | ❌ |
 
 ### Confirm Your Roster
 
@@ -150,7 +154,7 @@ Head back to the **Agents** panel. You should now see all four agents listed wit
 
 Click **Chatroom** in the sidebar. Make sure all four agents are listed in the **Active Agents** section on the right. Then type your first message:
 
-```
+```text
 Design and build a simple REST API for a to-do list application.
 ```
 

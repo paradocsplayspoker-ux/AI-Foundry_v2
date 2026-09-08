@@ -1,5 +1,5 @@
 ---
-title: "Code Review Workflow with AI Forge"
+title: "AI Forge Code Review Workflow: Diffs, Feedback, and Fixes"
 sidebarTitle: "Code Review"
 description: "Walk through diff-based code review: agents propose changes, you inspect diffs, a reviewer agent gives inline feedback, and the developer applies fixes."
 ---
@@ -41,7 +41,7 @@ You can read the diff yourself directly in the Diff Viewer. You can also ask an 
 
 To trigger an agent review, mention the agent in the chatroom:
 
-```
+```text
 @Security Engineer — please review the changes in src/routes/auth.js
 and src/middleware/requireAuth.js and report your findings.
 ```
@@ -60,7 +60,7 @@ The reviewer agent posts its findings as a structured report. Each finding refer
 
 Once the reviewer's feedback is posted, direct the Developer to address specific findings:
 
-```
+```text
 @Developer — address the Medium finding from Security Engineer 
 (requireAuth.js line 4) and the naming issue flagged by Code Reviewer 
 (auth.js line 18). Then re-stage the corrected files.

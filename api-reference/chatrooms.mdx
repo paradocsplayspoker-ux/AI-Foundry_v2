@@ -1,10 +1,34 @@
 ---
-title: "Chatrooms API Reference — AI Forge"
+title: "Chatrooms and Messages REST API Reference — AI Forge"
 sidebarTitle: "Chatrooms"
-description: "Create chatrooms, add agents, send messages, and retrieve conversation history through the AI Forge Chatrooms API endpoints."
+description: "Create chatrooms, assign agents, send messages, and retrieve full conversation history through the AI Forge Chatrooms and Messages API."
 ---
 
-Chatrooms are the collaborative spaces where humans and agents exchange messages within a project. You can create multiple chatrooms per project — for example, separating research threads from code-generation workflows — and assign different sets of agents to each one. The Chatrooms API lets you create rooms, post messages, and read conversation history programmatically.
+Chatrooms are the collaborative spaces where humans and agents exchange messages within a project. You can create multiple chatrooms per project — for example, separating research threads from code-generation workflows — and assign different sets of agents to each one. The Chatrooms API lets you create rooms, post messages, and read conversation history programmatically. Agent replies are delivered asynchronously; listen to the [activity stream](/api-reference/activity) for `agent_response` events to receive them in real time.
+
+## The chatroom object
+
+<ResponseField name="id" type="string">
+  Unique identifier for the chatroom, prefixed with `room_`.
+</ResponseField>
+
+<ResponseField name="projectId" type="string">
+  The ID of the project this chatroom belongs to.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Human-readable name for the chatroom.
+</ResponseField>
+
+<ResponseField name="agentIds" type="array">
+  Array of agent IDs assigned to this chatroom. All listed agents will receive and can respond to messages posted here.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of when the chatroom was created.
+</ResponseField>
+
+---
 
 ## The message object
 
@@ -40,22 +64,22 @@ Chatrooms are the collaborative spaces where humans and agents exchange messages
 
 ## List chatrooms
 
-Retrieve all chatrooms in a project.
+Retrieve all chatrooms. Filter to a specific project using the `projectId` query parameter.
 
 ```
-GET /projects/:id/chatrooms
+GET /api/chatrooms
 ```
 
-### Path parameters
+### Query parameters
 
-<ParamField path="id" type="string" required>
-  The ID of the project.
+<ParamField query="projectId" type="string">
+  Filter chatrooms to a specific project. If omitted, all chatrooms your token can access are returned.
 </ParamField>
 
 ### Example request
 
-```bash title="List chatrooms"
-curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
+```bash title="List chatrooms in a project"
+curl "https://api.aiforge.app/api/chatrooms?projectId=proj_01hw3k9z2x" \
   -H "Authorization: Bearer <your-api-token>"
 ```
 
@@ -66,12 +90,14 @@ curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
   "chatrooms": [
     {
       "id": "room_01hwgh5t9p",
+      "projectId": "proj_01hw3k9z2x",
       "name": "General",
       "agentIds": ["agent_01hwcd4f7g", "agent_01hwef9q3r"],
       "createdAt": "2024-05-10T09:10:00Z"
     },
     {
       "id": "room_01hwij7v2k",
+      "projectId": "proj_01hw3k9z2x",
       "name": "Code Review",
       "agentIds": ["agent_01hwef9q3r"],
       "createdAt": "2024-05-11T10:00:00Z"
@@ -87,32 +113,31 @@ curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
 Create a new chatroom and optionally assign agents to it.
 
 ```
-POST /projects/:id/chatrooms
+POST /api/chatrooms
 ```
 
-### Path parameters
+### Request body
 
-<ParamField path="id" type="string" required>
+<ParamField body="projectId" type="string" required>
   The ID of the project in which to create the chatroom.
 </ParamField>
-
-### Request body
 
 <ParamField body="name" type="string" required>
   A name for the chatroom. Must be between 1 and 100 characters.
 </ParamField>
 
 <ParamField body="agentIds" type="array">
-  An optional array of agent IDs to add to the chatroom at creation time. Agents can be added or removed later.
+  An optional array of agent IDs to add to the chatroom at creation time. Agents can be added or removed later via the UI.
 </ParamField>
 
 ### Example request
 
 ```bash title="Create a chatroom"
-curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
+curl -X POST https://api.aiforge.app/api/chatrooms \
   -H "Authorization: Bearer <your-api-token>" \
   -H "Content-Type: application/json" \
   -d '{
+    "projectId": "proj_01hw3k9z2x",
     "name": "Bug Triage",
     "agentIds": ["agent_01hwcd4f7g"]
   }'
@@ -124,12 +149,20 @@ curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
 {
   "chatroom": {
     "id": "room_01hwkl9x4m",
+    "projectId": "proj_01hw3k9z2x",
     "name": "Bug Triage",
     "agentIds": ["agent_01hwcd4f7g"],
     "createdAt": "2024-05-14T13:30:00Z"
   }
 }
 ```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | `name` is missing or exceeds the character limit. |
+| `404` | `not_found` | The specified `projectId` does not exist, or an `agentId` in the list is not found. |
 
 ---
 
@@ -138,22 +171,16 @@ curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
 Post a message to a chatroom. All agents assigned to the room will receive the message, unless you direct it to a specific agent using `targetAgentId`.
 
 ```
-POST /projects/:id/chatrooms/:roomId/messages
+POST /api/messages
 ```
 
 Agent responses are delivered asynchronously. After posting a message, listen to the [activity stream](/api-reference/activity) for `agent_response` and `turn_finished` events to know when agents have replied.
 
-### Path parameters
+### Request body
 
-<ParamField path="id" type="string" required>
-  The ID of the project.
-</ParamField>
-
-<ParamField path="roomId" type="string" required>
+<ParamField body="chatroomId" type="string" required>
   The ID of the chatroom to send the message to.
 </ParamField>
-
-### Request body
 
 <ParamField body="content" type="string" required>
   The text content of the message. Maximum 32,000 characters.
@@ -166,10 +193,11 @@ Agent responses are delivered asynchronously. After posting a message, listen to
 ### Example request
 
 ```bash title="Send a message"
-curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms/room_01hwkl9x4m/messages \
+curl -X POST https://api.aiforge.app/api/messages \
   -H "Authorization: Bearer <your-api-token>" \
   -H "Content-Type: application/json" \
   -d '{
+    "chatroomId": "room_01hwkl9x4m",
     "content": "Please review the latest changes to src/auth/middleware.ts and flag any security issues.",
     "targetAgentId": "agent_01hwef9q3r"
   }'
@@ -195,6 +223,13 @@ curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms/room_
   The response contains your **user** message only. The agent's reply will arrive as a separate `agent_response` activity event. Use the [activity stream](/api-reference/activity) or poll the [list messages](#list-messages) endpoint to retrieve agent replies.
 </Note>
 
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | `chatroomId` or `content` is missing, or `content` exceeds the maximum length. |
+| `404` | `not_found` | The specified `chatroomId` or `targetAgentId` does not exist. |
+
 ---
 
 ## List messages
@@ -202,16 +237,12 @@ curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms/room_
 Retrieve the message history for a chatroom. Results are returned in reverse chronological order (newest first) and can be paginated using a cursor.
 
 ```
-GET /projects/:id/chatrooms/:roomId/messages
+GET /api/chatrooms/:id/messages
 ```
 
 ### Path parameters
 
 <ParamField path="id" type="string" required>
-  The ID of the project.
-</ParamField>
-
-<ParamField path="roomId" type="string" required>
   The ID of the chatroom.
 </ParamField>
 
@@ -228,7 +259,7 @@ GET /projects/:id/chatrooms/:roomId/messages
 ### Example request
 
 ```bash title="List recent messages"
-curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms/room_01hwkl9x4m/messages?limit=3" \
+curl "https://api.aiforge.app/api/chatrooms/room_01hwkl9x4m/messages?limit=3" \
   -H "Authorization: Bearer <your-api-token>"
 ```
 
@@ -267,34 +298,44 @@ curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms/room_01hwkl9
 The following example shows a complete flow: send a message, then consume the activity stream to capture the agent's reply in real time.
 
 ```js title="Send a message and stream the agent reply"
-const PROJECT_ID = "proj_01hw3k9z2x";
 const ROOM_ID = "room_01hwkl9x4m";
-const BASE = "https://api.aiforge.app/v1";
+const PROJECT_ID = "proj_01hw3k9z2x";
+const BASE = "https://api.aiforge.app/api";
 const TOKEN = process.env.AIFORGE_API_TOKEN;
 
 // 1. Send the message
-await fetch(`${BASE}/projects/${PROJECT_ID}/chatrooms/${ROOM_ID}/messages`, {
+await fetch(`${BASE}/messages`, {
   method: "POST",
   headers: {
     Authorization: `Bearer ${TOKEN}`,
     "Content-Type": "application/json",
   },
-  body: JSON.stringify({ content: "Summarise the README in three bullet points." }),
+  body: JSON.stringify({
+    chatroomId: ROOM_ID,
+    content: "Summarise the README in three bullet points.",
+  }),
 });
 
 // 2. Open the activity stream and wait for the agent's response
-const stream = new EventSource(
+import EventSource from "eventsource"; // npm install eventsource
+
+const es = new EventSource(
   `${BASE}/projects/${PROJECT_ID}/activity/stream`,
   { headers: { Authorization: `Bearer ${TOKEN}` } }
 );
 
-stream.addEventListener("agent_response", (event) => {
+es.addEventListener("agent_response", (event) => {
   const data = JSON.parse(event.data);
-  console.log("Agent replied:", data.content);
+  console.log("Agent replied:", data.payload.content);
 });
 
-stream.addEventListener("turn_finished", () => {
+es.addEventListener("turn_finished", () => {
   console.log("Turn complete.");
-  stream.close();
+  es.close();
 });
+
+es.onerror = (err) => {
+  console.error("Stream error:", err);
+  es.close();
+};
 ```

@@ -1,10 +1,10 @@
 ---
-title: "Activity API Reference — AI Forge"
+title: "Activity Stream and Tasks API Reference — AI Forge"
 sidebarTitle: "Activity"
-description: "Query paginated activity events or subscribe to a real-time SSE stream to monitor agent actions, file operations, and run completions."
+description: "Query paginated activity events, subscribe to a real-time SSE stream, and list background tasks to monitor agent actions and run completions."
 ---
 
-The Activity API provides two complementary ways to observe what is happening inside your AI Forge projects. The paginated GET endpoint gives you a historical log of events — useful for auditing, debugging, and building reports. The SSE stream endpoint pushes events to you in real time the moment they occur — ideal for live dashboards, progress UIs, or automation that needs to react to agent behaviour as it unfolds.
+The Activity API provides two complementary ways to observe what is happening inside your AI Forge projects. The paginated `GET /api/activity` endpoint gives you a historical log of events — useful for auditing, debugging, and building reports. The SSE stream endpoint (`GET /api/activity/stream`) pushes events to you in real time the moment they occur — ideal for live dashboards, progress UIs, or automation that needs to react to agent behaviour as it unfolds. The `GET /api/tasks` endpoint surfaces long-running background tasks so you can track their progress and completion status.
 
 <Tip>
   The SSE stream is the recommended approach for building real-time dashboards and monitoring tools. Subscribe once per project and receive every event type without polling — this is more efficient and has lower latency than repeated calls to the paginated endpoint.
@@ -52,8 +52,10 @@ Every activity event — whether returned by the paginated endpoint or pushed ov
 | `provider_error` | The AI provider returned an error during inference. The `payload` includes `code` and `message` fields. |
 | `file_read` | An agent read a file from the workspace. The `payload` includes the `path` of the file read. |
 | `file_write` | An agent wrote to or created a file. The `payload` includes the `path` and the number of `bytes` written. |
+| `file_delete` | An agent deleted a file from the workspace. The `payload` includes the `path` of the deleted file. |
 | `command_started` | An agent initiated a terminal command. The `payload` includes the `command` string and `pid`. |
 | `command_output` | Streaming output chunk from a running terminal command. The `payload` includes `pid`, `stream` (`stdout` or `stderr`), and `chunk`. |
+| `command_finished` | A terminal command has exited. The `payload` includes `pid`, `exitCode`, and `duration`. |
 
 ---
 
@@ -62,16 +64,14 @@ Every activity event — whether returned by the paginated endpoint or pushed ov
 Retrieve a paginated list of past activity events for a project, ordered newest first.
 
 ```
-GET /projects/:id/activity
+GET /api/activity
 ```
 
-### Path parameters
-
-<ParamField path="id" type="string" required>
-  The ID of the project.
-</ParamField>
-
 ### Query parameters
+
+<ParamField query="projectId" type="string" required>
+  The ID of the project to retrieve activity for.
+</ParamField>
 
 <ParamField query="limit" type="integer">
   Number of events to return. Defaults to `25`, maximum `200`.
@@ -88,7 +88,7 @@ GET /projects/:id/activity
 ### Example request
 
 ```bash title="Get the last 10 activity events"
-curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?limit=10" \
+curl "https://api.aiforge.app/api/activity?projectId=proj_01hw3k9z2x&limit=10" \
   -H "Authorization: Bearer <your-api-token>"
 ```
 
@@ -135,14 +135,14 @@ curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?limit=10" \
 ### Filtering by event type
 
 ```bash title="Get only agent_response events"
-curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?type=agent_response&limit=50" \
+curl "https://api.aiforge.app/api/activity?projectId=proj_01hw3k9z2x&type=agent_response&limit=50" \
   -H "Authorization: Bearer <your-api-token>"
 ```
 
 ### Paginating through history
 
 ```bash title="Load the next page using a cursor"
-curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?limit=25&before=evt_01hwnp1j4l" \
+curl "https://api.aiforge.app/api/activity?projectId=proj_01hw3k9z2x&limit=25&before=evt_01hwnp1j4l" \
   -H "Authorization: Bearer <your-api-token>"
 ```
 
@@ -153,7 +153,7 @@ curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?limit=25&befo
 Subscribe to a real-time stream of activity events using [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events). The connection stays open and the server pushes each event as it occurs.
 
 ```
-GET /projects/:id/activity/stream
+GET /api/activity/stream
 ```
 
 The endpoint returns a `text/event-stream` response. Each event follows the standard SSE format:
@@ -166,9 +166,9 @@ data: <json_payload>
 
 Each event's `data` field contains the full [event object](#event-object) serialized as JSON.
 
-### Path parameters
+### Query parameters
 
-<ParamField path="id" type="string" required>
+<ParamField query="projectId" type="string" required>
   The ID of the project to stream activity for.
 </ParamField>
 
@@ -189,7 +189,7 @@ data: {"id":"evt_01hwnp4s9r","type":"turn_finished","projectId":"proj_01hw3k9z2x
 const PROJECT_ID = "proj_01hw3k9z2x";
 const TOKEN = process.env.AIFORGE_API_TOKEN;
 
-const streamUrl = `https://api.aiforge.app/v1/projects/${PROJECT_ID}/activity/stream`;
+const streamUrl = `https://api.aiforge.app/api/activity/stream?projectId=${PROJECT_ID}`;
 
 // EventSource does not support custom headers in all browsers.
 // For server-side or Node.js environments, use a fetch-based SSE client
@@ -250,7 +250,7 @@ const PROJECT_ID = "proj_01hw3k9z2x";
 const TOKEN = process.env.AIFORGE_API_TOKEN;
 
 const es = new EventSource(
-  `https://api.aiforge.app/v1/projects/${PROJECT_ID}/activity/stream`,
+  `https://api.aiforge.app/api/activity/stream?projectId=${PROJECT_ID}`,
   {
     headers: { Authorization: `Bearer ${TOKEN}` },
   }
@@ -265,6 +265,11 @@ es.addEventListener("run_completed", () => {
   console.log("Done.");
   es.close();
 });
+
+es.onerror = (err) => {
+  console.error("Stream error:", err);
+  es.close();
+};
 ```
 
 <Note>
@@ -276,5 +281,93 @@ es.addEventListener("run_completed", () => {
 | Status | Code | Cause |
 |--------|------|-------|
 | `401` | `unauthorized` | Missing or invalid API token. |
+| `403` | `forbidden` | Your account does not have access to this project. |
+| `404` | `not_found` | No project with the given ID exists. |
+
+---
+
+## List tasks
+
+Retrieve a list of background tasks for a project. Tasks represent long-running or queued operations — such as an autonomous agent run, a batch file operation, or a scheduled pipeline — that execute outside of the synchronous request/response cycle.
+
+```
+GET /api/tasks
+```
+
+### Query parameters
+
+<ParamField query="projectId" type="string" required>
+  The ID of the project whose tasks you want to list.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter by task status. One of `"pending"`, `"running"`, `"completed"`, or `"failed"`. If omitted, all tasks are returned.
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Number of tasks to return. Defaults to `25`, maximum `100`.
+</ParamField>
+
+### Example request
+
+```bash title="List running tasks for a project"
+curl "https://api.aiforge.app/api/tasks?projectId=proj_01hw3k9z2x&status=running" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "tasks": [
+    {
+      "id": "task_01hwqr5p2n",
+      "projectId": "proj_01hw3k9z2x",
+      "type": "agent_run",
+      "status": "running",
+      "agentId": "agent_01hwef9q3r",
+      "createdAt": "2024-05-14T14:00:00Z",
+      "updatedAt": "2024-05-14T14:00:45Z"
+    }
+  ],
+  "hasMore": false
+}
+```
+
+### Task object fields
+
+<ResponseField name="id" type="string">
+  Unique identifier for the task, prefixed with `task_`.
+</ResponseField>
+
+<ResponseField name="projectId" type="string">
+  The ID of the project this task belongs to.
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The kind of task (for example, `"agent_run"`, `"file_operation"`, `"pipeline"`).
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current task status: `"pending"`, `"running"`, `"completed"`, or `"failed"`.
+</ResponseField>
+
+<ResponseField name="agentId" type="string | null">
+  The ID of the agent associated with this task, if applicable.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of when the task was created.
+</ResponseField>
+
+<ResponseField name="updatedAt" type="string">
+  ISO 8601 timestamp of the most recent status change.
+</ResponseField>
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | The `projectId` parameter is missing. |
 | `403` | `forbidden` | Your account does not have access to this project. |
 | `404` | `not_found` | No project with the given ID exists. |

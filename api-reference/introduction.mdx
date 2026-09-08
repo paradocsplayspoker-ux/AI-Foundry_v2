@@ -1,7 +1,7 @@
 ---
-title: "AI Forge API — Getting Started Guide"
+title: "AI Forge REST API — Introduction, Auth and Quick Start"
 sidebarTitle: "Introduction"
-description: "Automate projects, agents, files, and messaging in AI Forge with the REST API. All responses are JSON and authenticate via Bearer token."
+description: "Automate projects, agents, files, and messaging in AI Forge with the REST API. All responses are JSON and every request authenticates via Bearer token."
 ---
 
 The AI Forge API gives you programmatic access to every resource in your workspace — from spinning up multi-agent projects to sending messages, reading files, executing terminal commands, and streaming live activity events. Whether you are building a CI/CD integration, a custom dashboard, or an automated testing pipeline, the API exposes the same capabilities you interact with in the UI.
@@ -11,10 +11,10 @@ The AI Forge API gives you programmatic access to every resource in your workspa
 All API requests target the following base URL:
 
 ```
-https://api.aiforge.app/v1
+https://api.aiforge.app/api
 ```
 
-Every endpoint is versioned under `/v1`. When breaking changes are introduced, a new version path will be announced with a migration guide.
+Every endpoint is served under `/api`. When breaking changes are introduced, a migration guide will be announced in advance.
 
 ## Authentication
 
@@ -59,14 +59,14 @@ The examples below show how to list your projects using both `curl` and the brow
 ### curl
 
 ```bash title="List projects with curl"
-curl https://api.aiforge.app/v1/projects \
+curl https://api.aiforge.app/api/projects \
   -H "Authorization: Bearer <your-api-token>"
 ```
 
 ### fetch
 
 ```js title="List projects with fetch"
-const response = await fetch("https://api.aiforge.app/v1/projects", {
+const response = await fetch("https://api.aiforge.app/api/projects", {
   headers: {
     Authorization: "Bearer <your-api-token>",
   },
@@ -97,6 +97,28 @@ console.log(projects);
 }
 ```
 
+## API Surface
+
+The table below is a complete index of every public endpoint. Follow the links to the detailed reference pages for parameter schemas and example responses.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/projects` | List all projects |
+| `POST` | `/api/projects` | Create a project |
+| `GET` | `/api/projects/:id/files` | List files in a project workspace |
+| `POST` | `/api/files` | Create, update, or delete a file |
+| `GET` | `/api/agents` | List agents (optionally filter by project) |
+| `POST` | `/api/agents` | Create an agent |
+| `PATCH` | `/api/agents/:id` | Update an agent |
+| `GET` | `/api/chatrooms` | List chatrooms |
+| `POST` | `/api/chatrooms` | Create a chatroom |
+| `POST` | `/api/messages` | Send a message to a chatroom |
+| `GET` | `/api/providers` | List available AI providers |
+| `POST` | `/api/credentials` | Store a provider credential |
+| `POST` | `/api/terminal/execute` | Execute a shell command |
+| `GET` | `/api/activity` | Query paginated activity events |
+| `GET` | `/api/tasks` | List background tasks for a project |
+
 ## Explore the API
 
 <CardGroup cols={2}>
@@ -104,12 +126,21 @@ console.log(projects);
     Generate tokens, set up authorization headers, and understand permission scopes.
   </Card>
   <Card title="Projects" icon="folder" href="/api-reference/projects">
-    Create, list, update, and delete your AI Forge projects.
+    Create and list AI Forge projects; browse the project file workspace.
   </Card>
   <Card title="Agents" icon="robot" href="/api-reference/agents">
     Configure agents with roles, models, prompts, and autonomy settings.
   </Card>
   <Card title="Chatrooms" icon="comments" href="/api-reference/chatrooms">
-    Send messages and read conversation history across your project chatrooms.
+    Create chatrooms, send messages, and read conversation history.
+  </Card>
+  <Card title="Files" icon="file-code" href="/api-reference/files">
+    Read, write, and delete files in your project workspace.
+  </Card>
+  <Card title="Terminal" icon="terminal" href="/api-reference/terminal">
+    Execute shell commands inside your project environment.
+  </Card>
+  <Card title="Activity" icon="bolt" href="/api-reference/activity">
+    Stream real-time events or query paginated activity history.
   </Card>
 </CardGroup>

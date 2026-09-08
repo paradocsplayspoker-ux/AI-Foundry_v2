@@ -10,7 +10,7 @@ A **project** in AI Forge is a fully isolated development environment where you 
 
 Each project contains the following, all stored and namespaced independently:
 
-- **Filesystem** — a persistent directory (stored under `data/workspaces/<project_id>/`) that holds all source files, build artifacts, configs, and any other files your agents create or modify. The filesystem behaves like a real disk: agents can read, write, and execute files using the built-in terminal.
+- **Filesystem** — a persistent directory that holds all source files, build artifacts, configs, and any other files your agents create or modify. The filesystem behaves like a real disk: agents can read, write, and execute files using the built-in terminal.
 - **Agents** — specialized AI collaborators you configure for the project (e.g., Planner, Developer, Tester). Each agent has its own role, provider credential, and conversation thread.
 - **Chatrooms** — threaded communication channels where you direct agents, ask questions, and review responses. You can create as many rooms as you like and organize them by concern (e.g., "Architecture", "Development", "QA").
 - **Activity history** — a chronological feed of every action taken in the project: file writes, agent responses, terminal commands, and more. The history persists indefinitely so you can audit what happened and when.

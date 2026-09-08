@@ -1,7 +1,7 @@
 ---
-title: "Quickstart: Build Something With AI Forge"
+title: "Quickstart: Build Your First AI Agent Team in 5 Minutes"
 sidebarTitle: "Quickstart"
-description: "Get from zero to a working AI agent team in minutes — create a project, connect a provider, add an agent, and send your first instruction."
+description: "Create a project, connect an AI provider, add your first agent, and send an instruction that writes and runs real code — all in under five minutes."
 ---
 
 This guide walks you through everything you need to send your first instruction to an AI agent and watch it write real code in your project. The entire process takes about five minutes, and by the end you'll have a live project with an agent ready to build.
@@ -22,7 +22,7 @@ Your agents need a language model to work with. Navigate to **Settings → Provi
 
 Select your provider — OpenAI is a good starting point — and paste your API key into the **API Key** field. Click **Save**. AI Forge stores your key server-side and never exposes it to the browser or to agent tool calls.
 
-```
+```text
 Settings → Providers → Add Provider → Select "OpenAI" → Paste API Key → Save
 ```
 
@@ -73,7 +73,7 @@ After you send your instruction, switch to the **Activity** tab in the bottom pa
 
 As the agent writes files, the **Monaco editor** in the center panel opens a diff view showing exactly what changed. You can review each edit and click **Accept** to apply it or **Reject** to discard it before it lands on disk.
 
-```
+```text
 Activity Feed → file_write: server.js (+18 lines)
 Activity Feed → terminal_execute: npm install
 Activity Feed → terminal_execute: node server.js → exit 0
@@ -88,6 +88,6 @@ Once the agent reports completion, open `server.js` in the file explorer and con
 You've created a project, connected a provider, built an agent, and watched it write and run real code. From here, you can:
 
 - **Add more agents** — Create a Reviewer agent to critique the code and a Tester agent to write unit tests.
-- **Try an orchestration mode** — Switch to **Code Review** mode to have agents debate and refine each other's output automatically.
+- **Try an orchestration mode** — Switch to **Code Review** or **Debate** mode to have agents critique and refine each other's output automatically, or enable **Autonomous Development** for a fully hands-off build cycle.
 - **Explore the workspace** — Learn about the file explorer, diff viewer, and terminal in the [Workspace Overview](/workspace/overview).
 - **Dive into concepts** — Read [Core Concepts](/core-concepts) to understand how projects, agents, and orchestration modes fit together.

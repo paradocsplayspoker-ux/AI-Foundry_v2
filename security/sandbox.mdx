@@ -1,7 +1,7 @@
 ---
-title: "How AI Forge Sandboxes Agent Actions"
+title: "AI Forge Sandbox: Filesystem & Execution Isolation"
 sidebarTitle: "Sandbox"
-description: "Understand how AI Forge isolates agent filesystem access, command execution, and credentials to protect your projects."
+description: "Understand how AI Forge sandboxes agent filesystem access, command execution, and credential storage to protect your projects and data."
 ---
 
 Every action an agent takes in AI Forge is scoped to a carefully defined sandbox. Sandboxing happens at multiple layers — the filesystem, the terminal, and the credential store — so that agents can do meaningful work while remaining unable to reach outside their designated boundaries. Understanding how these boundaries work helps you make informed decisions about what permissions to grant and how to structure your projects.
