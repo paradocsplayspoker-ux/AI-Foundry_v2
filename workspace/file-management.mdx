@@ -1,0 +1,84 @@
+---
+title: "File Management: Organize Your Project in AI Forge"
+sidebarTitle: "File Management"
+description: "Create, rename, move, and delete files and folders in AI Forge's file explorer, search across your project, and export your workspace as a zip archive."
+---
+
+The file explorer in AI Forge gives you full control over your project's filesystem — you can create, rename, move, and delete files and folders manually, just as you would in a local IDE. Everything you do in the explorer is immediately reflected on the real backend filesystem and visible to your agents.
+
+<Tip>
+  Press `Ctrl+Shift+P` (`Cmd+Shift+P` on macOS) to open the **Command Palette**. From there you can quickly run file operations — create file, rename, move to folder, search — without reaching for the mouse.
+</Tip>
+
+## The File Explorer Tree
+
+The file explorer occupies the **left panel** of the workspace. It shows the complete directory tree of your project, starting from the project root. Click the arrow or folder icon next to any directory to expand or collapse it. Click any file to open it in the Monaco editor.
+
+The explorer updates automatically when:
+
+- You create, rename, or delete files manually
+- An agent writes a new file or deletes an existing one (after you accept the diff)
+- You run a shell command in the terminal that changes the filesystem
+
+Files with pending agent diffs show an **orange dot** badge. Files you've edited but not yet saved show a **white dot** badge.
+
+## Creating Files and Folders
+
+**Via context menu:** Right-click any folder in the explorer and select **New File** or **New Folder**. Type the name and press **Enter** to confirm.
+
+**Via Command Palette:** Open the Command Palette (`Ctrl+Shift+P`) and type **New File**. Enter the full path relative to the project root, for example `src/utils/helpers.ts`, and AI Forge creates any missing intermediate directories automatically.
+
+**Via the terminal:** You can also create files directly from the integrated terminal using standard shell commands:
+
+```bash
+touch src/utils/helpers.ts
+mkdir -p src/components/ui
+```
+
+## Renaming Files and Folders
+
+Right-click any file or folder in the explorer and select **Rename**. The name field becomes editable inline — type the new name and press **Enter**. Press **Escape** to cancel without saving.
+
+You can also rename via the Command Palette: open it, type **Rename File**, and enter the new name.
+
+<Note>
+  Renaming a file does not automatically update import statements or references to that file elsewhere in your project. Use the project-wide search (see below) to find and update references manually, or ask a Developer agent to handle the refactor for you.
+</Note>
+
+## Deleting Files and Folders
+
+Right-click any file or folder and select **Delete**. A confirmation dialog appears before the deletion is applied — click **Confirm** to proceed or **Cancel** to abort.
+
+<Warning>
+  Deletions are permanent and cannot be undone from the file explorer itself. If you need to recover a deleted file that an agent previously touched, check the **Version History** panel for that file (right-click its tab in the editor) — AI Forge stores snapshots of every agent-edited file.
+</Warning>
+
+## Drag-to-Move
+
+To move a file or folder to a different location in the project, drag it from its current position in the explorer tree and drop it onto the destination folder. The item moves immediately and the explorer refreshes to show its new location.
+
+## Project-Wide Search
+
+AI Forge includes a built-in search that covers both **filenames** and **file contents** across your entire project.
+
+**Opening search:** Click the magnifying glass icon at the top of the file explorer panel, or press `Ctrl+Shift+F` (`Cmd+Shift+F` on macOS).
+
+**Filename search:** Type a partial filename to filter the file tree to matching files. Matches are highlighted in the explorer.
+
+**Content search:** Switch to the **Content** tab in the search panel and type a string or regular expression. AI Forge searches every file in your project and returns a list of matches with file path, line number, and a short preview of the matching line. Click any result to jump directly to that line in the editor.
+
+```
+Search: "app.listen"
+→ server.js:12    app.listen(3000, () => {
+→ app.js:47       app.listen(PORT, callback);
+```
+
+## Exporting Your Project
+
+To download a snapshot of your entire project as a `.zip` archive, open the **Project Menu** (the `⋯` button next to the project name in the top navigation bar) and select **Export as ZIP**.
+
+AI Forge packages the current state of the filesystem — including all files and folders in your project root — into a zip file and downloads it to your browser. The export captures what's actually on disk, meaning only accepted agent changes are included.
+
+<Info>
+  The ZIP export does not include agent message history, activity logs, or version snapshots — it contains only the raw files in your project directory. To preserve the full project context, keep working in AI Forge rather than exporting and re-importing.
+</Info>

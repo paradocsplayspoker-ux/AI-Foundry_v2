@@ -1,0 +1,96 @@
+---
+title: "Connecting Your First AI Provider"
+sidebarTitle: "Connecting Providers"
+description: "Follow these steps to add an API key, verify the connection, and assign it to agents in your AI Forge workspace."
+---
+
+Before your agents can generate responses, AI Forge needs at least one active provider credential. The process takes under two minutes: you navigate to Settings, pick a provider, paste your API key, and confirm it works with a single test click. The steps below walk you through the full flow, with provider-specific notes for OpenAI, Anthropic, and OpenRouter.
+
+## Steps to connect a provider
+
+<Steps>
+  <Step title="Open Settings → Providers">
+    Click the **Settings** icon in the left sidebar, then select the **Providers** tab. This page lists all credentials currently saved in your workspace.
+  </Step>
+  <Step title="Click Add Provider">
+    Click the **Add Provider** button in the top-right corner of the Providers page. A configuration panel slides open.
+  </Step>
+  <Step title="Select your provider">
+    Choose the provider you want to connect from the dropdown — for example, **OpenAI**. AI Forge loads the relevant fields for that provider automatically.
+  </Step>
+  <Step title="Enter a credential name">
+    Give this credential a human-readable name you'll recognize later, such as `My OpenAI Key` or `prod-openai-key-1`. The name is only used inside AI Forge and is never sent to the provider.
+  </Step>
+  <Step title="Paste your API key">
+    Paste your API key into the **API Key** field. If the provider requires additional fields (such as a base URL for custom endpoints), fill those in now.
+  </Step>
+  <Step title="Click Save">
+    Click **Save**. AI Forge stores the key server-side. The field immediately masks the key — you will not see the raw value again.
+  </Step>
+  <Step title="Click Test Credential">
+    Click the **Test Credential** button next to your new entry. AI Forge makes a lightweight request to the provider to confirm the key is valid and returns a ✅ success indicator or a specific error message if something is wrong.
+  </Step>
+  <Step title="Set as default or assign to agents">
+    To make this credential the workspace default, click **Set as Default**. To assign it to a specific agent only, open the agent's settings and select this credential from the **Provider Credential** dropdown.
+  </Step>
+</Steps>
+
+<Note>
+  After you click Save, your API key is masked and stored server-side. It is never returned to the browser — not in API responses, not in page source, not anywhere. If you need to rotate the key, delete the credential and add a new one.
+</Note>
+
+## Provider-specific instructions
+
+<Tabs>
+  <Tab title="OpenAI">
+    **Obtaining your key**
+
+    1. Sign in at [platform.openai.com](https://platform.openai.com).
+    2. Navigate to **API keys** in the left sidebar.
+    3. Click **Create new secret key**, give it a name, and copy it immediately — OpenAI only shows it once.
+
+    **In AI Forge**
+
+    - Select **OpenAI** from the provider dropdown.
+    - Paste your secret key (begins with `sk-...`) into the **API Key** field.
+    - AI Forge will automatically discover available models (GPT-4o, GPT-4, o1, and others) once the credential is saved.
+
+    <Tip>
+      If your organization uses a custom base URL (e.g., an Azure OpenAI deployment), use the **Custom OpenAI-Compatible** provider option instead.
+    </Tip>
+  </Tab>
+  <Tab title="Anthropic">
+    **Obtaining your key**
+
+    1. Sign in at [console.anthropic.com](https://console.anthropic.com).
+    2. Go to **API Keys** and click **Create Key**.
+    3. Copy the key — it begins with `sk-ant-...`.
+
+    **In AI Forge**
+
+    - Select **Anthropic** from the provider dropdown.
+    - Paste your key into the **API Key** field.
+    - Available models include Claude 3.5 Sonnet and Claude 3 Opus. AI Forge discovers the full list automatically.
+
+    <Note>
+      Anthropic enforces strict usage tiers. If the Test Credential check fails with a permissions error, confirm your account has been granted API access at [console.anthropic.com](https://console.anthropic.com).
+    </Note>
+  </Tab>
+  <Tab title="OpenRouter">
+    **Obtaining your key**
+
+    1. Sign in at [openrouter.ai](https://openrouter.ai).
+    2. Go to **Keys** in your account dashboard and click **Create Key**.
+    3. Copy the generated key.
+
+    **In AI Forge**
+
+    - Select **OpenRouter** from the provider dropdown.
+    - Paste your key into the **API Key** field.
+    - OpenRouter gives your agents access to 100+ models from multiple providers under a single key. AI Forge discovers the available model list dynamically.
+
+    <Tip>
+      OpenRouter is a great starting point if you want to experiment with many different models without managing separate credentials for each provider.
+    </Tip>
+  </Tab>
+</Tabs>

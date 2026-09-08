@@ -1,0 +1,186 @@
+---
+title: "Troubleshooting Common AI Forge Issues"
+sidebarTitle: "Common Issues"
+description: "Step-by-step fixes for the most frequently reported problems in AI Forge, from unresponsive agents to context overflows."
+---
+
+Most problems in AI Forge fall into a small set of recognizable patterns. This guide walks you through the symptoms and resolution steps for the issues users encounter most often. If your issue involves a specific provider error code (401, 429, 5xx, etc.), see the [Provider Errors](./provider-errors) guide instead.
+
+<Accordion title="Agent Not Responding">
+**Symptoms:** You send a message to an agent and receive no reply. The agent's status indicator stays idle or shows a spinner indefinitely. No error appears in the chatroom.
+
+**Common causes:**
+- The provider API key assigned to the agent is invalid or has been revoked
+- The provider is rate-limiting your account (see 429 errors in [Provider Errors](./provider-errors))
+- The agent's assigned model has been deprecated or renamed by the provider
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Check the activity feed">
+    Open the **Activity Feed** panel. Provider errors are surfaced here with the raw error message. Look for a 401, 403, or 429 error tied to the unresponsive agent.
+  </Step>
+  <Step title="Verify the API key">
+    Go to **Settings → Providers** and click **Test** next to the credential assigned to this agent. If the test fails, re-enter or rotate the key.
+  </Step>
+  <Step title="Check provider status">
+    Visit your provider's status page (e.g. status.openai.com, status.anthropic.com) to rule out an outage on their end.
+  </Step>
+  <Step title="Try reassigning the model">
+    If the API key tests as valid but the agent still doesn't respond, the assigned model may have been renamed. Open the agent's settings and select a known-available model from the dropdown.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="File Changes Not Appearing in IDE">
+**Symptoms:** An agent reports that it has created or modified files, but those files don't show up in the file tree or still display old content when you open them.
+
+**Common causes:**
+- The file tree has not refreshed since the agent made its changes
+- The browser tab has been open for an extended session and the local view is stale
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Refresh the file tree">
+    Click the **refresh icon** at the top of the file tree panel. This triggers an immediate sync with the server-side filesystem without reloading the full page.
+  </Step>
+  <Step title="Close and reopen the file">
+    If a file is already open in the editor and showing stale content, close the tab and reopen the file from the file tree to force a fresh read.
+  </Step>
+  <Step title="Reload the workspace">
+    If refreshing the tree doesn't resolve the issue, reload the workspace page. Your session state, chat history, and agent configurations are preserved.
+  </Step>
+</Steps>
+
+<Tip>
+Adjust the **File Tree Refresh Rate** in **Settings → Workspace** if you frequently encounter stale file tree state. A lower refresh interval keeps the view more current during active agent sessions.
+</Tip>
+</Accordion>
+
+<Accordion title="Terminal Command Fails">
+**Symptoms:** An agent attempts to run a terminal command and receives a permission denied error, or the command is silently skipped. The activity feed may show "Operation not permitted" or "Command blocked by policy."
+
+**Common causes:**
+- The agent does not have the `execute_commands` permission flag enabled
+- The project execution mode is set to SAFE_MODE, which blocks all command execution
+- The command is not on the server-side allowlist
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Check the agent's permission flags">
+    Open the agent's settings within the project and confirm that **execute_commands** is enabled. If it is greyed out, the project-level execution mode may be overriding it.
+  </Step>
+  <Step title="Check the execution mode">
+    Go to **Settings → Security** and verify the execution mode is not set to **SAFE_MODE**. Switch to **ASK_BEFORE_CHANGES** or **AUTO_APPLY** if command execution is needed.
+  </Step>
+  <Step title="Review the command">
+    If the permission is enabled and the mode is not SAFE_MODE, the command may be blocked by the server allowlist. Simplify the command or break it into steps that use allowed binaries.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="Agent Keeps Looping">
+**Symptoms:** An agent repeats the same actions or questions in a loop without making progress. It may keep re-reading the same files, re-running failing commands, or asking the same clarifying question repeatedly.
+
+**Common causes:**
+- The agent's autonomy level is set too high, allowing it to retry indefinitely without pausing for human input
+- The task description is ambiguous, causing the agent to loop while seeking direction it isn't getting
+- A failing command or tool call is being retried without a resolution path
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Interrupt the agent">
+    Click the **Stop** button in the chatroom to interrupt the agent's current execution loop immediately.
+  </Step>
+  <Step title="Reduce the autonomy level">
+    Open the agent's settings and lower its **Autonomy Level**. At a lower setting, the agent will pause and ask for guidance instead of retrying on its own.
+  </Step>
+  <Step title="Switch to ASK_BEFORE_CHANGES">
+    In **Settings → Security**, set the execution mode to **ASK_BEFORE_CHANGES**. This forces the agent to surface each proposed action for your approval, breaking the loop at the next step.
+  </Step>
+  <Step title="Clarify the task">
+    Send a follow-up message with more explicit instructions. Describe the expected outcome and any constraints the agent may be missing.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="Build or Install Fails">
+**Symptoms:** An agent attempts to install packages or run a build command, and the command exits with an error. The activity feed shows a non-zero exit code or a "command not found" / "permission denied" message.
+
+**Common causes:**
+- The agent does not have the `install_packages` permission flag enabled
+- The terminal's default working directory is not set to the project root (or the directory containing the manifest file)
+- The execution mode is SAFE_MODE, which blocks package installation
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Enable install_packages">
+    Open the agent's settings and confirm the **install_packages** permission flag is enabled.
+  </Step>
+  <Step title="Check the working directory">
+    Go to **Settings → Terminal** and verify the **Default Working Directory** is set to the directory containing your `package.json`, `requirements.txt`, or equivalent manifest. Relative paths are resolved from the project root.
+  </Step>
+  <Step title="Check the execution mode">
+    Confirm the project is not in **SAFE_MODE** (Settings → Security). SAFE_MODE blocks install commands regardless of agent permissions.
+  </Step>
+  <Step title="Review the error output">
+    Read the full command output in the activity feed. Dependency resolution errors, missing lock files, or incompatible Node/Python versions are application-level issues the agent may need additional guidance to resolve.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="Context Window Overflow">
+**Symptoms:** An agent stops responding mid-task, or an error appears in the activity feed indicating the context window has been exceeded. The agent may also start "forgetting" instructions it was given earlier in the conversation.
+
+**Common causes:**
+- A long chatroom session has accumulated more message history than the model's context window can hold
+- The agent read a very large file into its context, consuming most of the available window
+- The model assigned to the agent has a relatively small context window
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Start a new chatroom">
+    Create a fresh chatroom for the agent. New rooms start with an empty context. Re-paste any critical instructions or reference files to give the agent a clean starting point.
+  </Step>
+  <Step title="Ask the agent to summarize">
+    Before the context overflows, ask the agent to produce a concise summary of progress so far. You can paste this summary into the new room as a compact starting context.
+  </Step>
+  <Step title="Switch to a larger context model">
+    If long sessions are common for your workflow, open the agent's settings and assign a model with a larger context window (e.g. a 128k or 200k token model).
+  </Step>
+  <Step title="Avoid reading large files wholesale">
+    Instruct agents to read specific sections of large files rather than the entire file at once. This keeps file content from dominating the context window.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="Credential Not Saving">
+**Symptoms:** You enter an API key in Settings → Providers and click Save, but the credential disappears, shows as invalid, or the Test button immediately fails with an authentication error.
+
+**Common causes:**
+- The API key contains extra whitespace (a leading or trailing space copied from the clipboard)
+- The key format is incorrect for the selected provider (e.g. an OpenAI key entered under an Anthropic provider)
+- The key has been partially copied and is truncated
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Re-copy the key carefully">
+    Return to your provider dashboard and copy the key again. Paste it into a plain-text editor first to confirm it looks complete and has no surrounding whitespace, then paste it into AI Forge.
+  </Step>
+  <Step title="Confirm the correct provider is selected">
+    Make sure the provider dropdown in Settings matches the service that issued the key. OpenAI keys start with `sk-`, Anthropic keys start with `sk-ant-`, and so on.
+  </Step>
+  <Step title="Use the Test button before saving">
+    Click **Test** immediately after pasting the key. If the test fails with a 401 error, the key is invalid or malformed. If it fails with a 403, the key may lack the required model permissions.
+  </Step>
+  <Step title="Generate a new key">
+    If the key continues to fail after re-entry, generate a fresh API key from your provider dashboard and try again with the new one.
+  </Step>
+</Steps>
+</Accordion>

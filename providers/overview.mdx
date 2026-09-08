@@ -1,0 +1,42 @@
+---
+title: "AI Providers in AI Forge"
+sidebarTitle: "Overview"
+description: "Learn how AI Forge connects to AI providers, keeps your credentials secure, and isolates failures so your agents keep working."
+---
+
+AI Forge integrates with a wide range of AI providers — from OpenAI and Anthropic to Google Gemini, Groq, and custom self-hosted endpoints. A **provider** is any external service that supplies a language model your agents can call. You connect a provider by saving an API key as a named credential, and AI Forge handles everything from there: routing requests, discovering available models, and shielding your workspace from individual failures.
+
+## How credential security works
+
+Every API key you add is stored **server-side only**. The moment you save a credential, the key is masked in the UI and never returned to the browser again. This means no key ever travels through or lives in your client — not in localStorage, not in network responses, not anywhere a browser extension or devtools session could intercept it.
+
+## Multi-credential pools
+
+AI Forge lets you add **multiple credentials for the same provider**. This unlocks several practical benefits:
+
+- **Rate-limit distribution** — spread requests across two or more API keys so you're less likely to hit per-key quotas
+- **Team use** — different team members or agent roles can consume separate billing accounts without sharing a single key
+- **Failover** — if one key is revoked or exhausted, you can promote a backup credential without reconfiguring your agents
+
+Each credential carries a name you choose (e.g., `prod-openai-key-1`) and can be assigned to specific agents or left in a shared pool.
+
+## Provider failure isolation
+
+AI Forge runs every provider connection independently. If a credential expires or a provider's API returns errors, only the agent using that credential is affected — it surfaces the error in its own chat thread while every other agent in your project continues working normally. You never lose your whole workspace because one API key misbehaved.
+
+## What you can do next
+
+<CardGroup cols={2}>
+  <Card title="Connect a Provider" icon="plug" href="/providers/connecting-providers">
+    Step-by-step guide to adding your first API key and verifying it works.
+  </Card>
+  <Card title="Manage Credentials" icon="key" href="/providers/managing-credentials">
+    Add multiple keys, assign them to agents, test them, and remove old ones.
+  </Card>
+  <Card title="Supported Providers" icon="list" href="/providers/supported-providers">
+    Browse every provider AI Forge supports and learn how to obtain an API key.
+  </Card>
+  <Card title="Settings" icon="gear" href="/configuration/settings">
+    Configure workspace-level defaults, including which provider agents use by default.
+  </Card>
+</CardGroup>

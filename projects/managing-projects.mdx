@@ -1,0 +1,61 @@
+---
+title: "Creating and Managing AI Forge Projects"
+sidebarTitle: "Managing Projects"
+description: "Create, rename, export, and delete AI Forge projects — and switch between them from the dashboard without losing any work."
+---
+
+AI Forge projects are the top-level containers for all your work. You can create as many as you need, switch between them freely, and manage their lifecycle entirely from the dashboard and project settings. This page walks you through creating your first project and covers every management action available once a project exists.
+
+## Creating a project
+
+<Steps>
+  <Step title="Click New Project from the dashboard">
+    On the AI Forge home dashboard, click the **New Project** button. If this is your first project, it's displayed prominently in the center of the screen. If you already have projects, look for the **+ New Project** button in the top-right corner of the projects list.
+  </Step>
+  <Step title="Enter a project name">
+    Type a name for your project in the **Project Name** field. Choose something descriptive that identifies the codebase or goal (e.g., `payment-service-refactor` or `mobile-app-v2`). You can rename it at any time.
+  </Step>
+  <Step title="Optionally import existing files via .zip">
+    If you have an existing codebase you want to work on, click **Import Files** and upload a `.zip` archive. AI Forge will unpack it into the project's filesystem so your agents can access your code immediately. You can also skip this step and add files manually after the project opens.
+  </Step>
+  <Step title="Project opens in the IDE">
+    Click **Create Project**. AI Forge provisions the project's isolated filesystem and drops you directly into the IDE, where you'll find the file tree, editor, terminal, and agent chat panel ready to use.
+  </Step>
+</Steps>
+
+## Renaming a project
+
+1. Open the project you want to rename.
+2. Navigate to **Settings → Project Settings**.
+3. Edit the **Project Name** field and click **Save**.
+
+The new name appears on the dashboard and in the browser tab immediately. Renaming has no effect on the project's filesystem or agent configuration.
+
+## Exporting a project as .zip
+
+You can download a complete snapshot of your project's filesystem at any time:
+
+1. Open the project.
+2. Go to **Settings → Project Settings**.
+3. Click **Export Project**. AI Forge packages the entire contents of the project's filesystem into a `.zip` archive and triggers a download.
+
+The export includes all files currently in the project filesystem. Agent configurations, chatroom history, and the activity log are not included in the `.zip` — the archive is a pure filesystem snapshot intended for backup or portability.
+
+## Switching between projects
+
+Click the **AI Forge logo** or the **Projects** link in the top navigation bar to return to the dashboard. All your projects are listed there. Click any project card to open it. Switching projects never loses your work — every project's filesystem and conversation history are saved automatically in real time.
+
+## Deleting a project
+
+<Warning>
+  Deleting a project is **permanent and irreversible**. All files in the project filesystem, all agent configurations, all chatroom conversations, and the complete activity history are destroyed immediately. There is no recovery path. Export the project first if you need to keep a copy of the files.
+</Warning>
+
+To delete a project:
+
+1. Open the project you want to remove.
+2. Go to **Settings → Project Settings**.
+3. Scroll to the **Danger Zone** section and click **Delete Project**.
+4. Confirm by typing the project name in the confirmation dialog.
+
+The project is removed from your dashboard and all associated data is permanently deleted.

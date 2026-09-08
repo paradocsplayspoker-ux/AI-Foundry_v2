@@ -1,0 +1,275 @@
+---
+title: "Orchestration Modes: How Agents Collaborate"
+sidebarTitle: "Orchestration"
+description: "Explore every orchestration mode in AI Forge — from freeform chat to autonomous development loops — and learn when to use each one."
+---
+
+Orchestration modes define the structure of collaboration inside a chatroom. They determine how messages flow between you and your agents, whether agents respond independently or in structured rounds, and how deeply agents interact with each other before surfacing results. Choosing the right mode for a task is as important as choosing the right agents — the same team of agents can produce very different outcomes depending on how their communication is organized.
+
+Every chatroom has exactly one orchestration mode active at a time, and you can switch modes between sessions. Agents themselves are mode-agnostic: you configure them once and deploy them into any mode.
+
+## Agent-to-Agent Communication
+
+Before exploring individual modes, it helps to understand how agents talk to each other. In AI Forge, Agent A can address Agent B directly through the orchestration engine — asking a question, requesting a review, or delegating a subtask. These exchanges appear in the chatroom transcript, so you always see the full conversation. You are never excluded from the loop.
+
+Agent-to-agent messages are routed by the orchestration engine, not sent peer-to-peer outside your oversight. Every message is logged, visible, and subject to the same permission checks as user-initiated actions. An agent cannot instruct another agent to exceed its own permission boundary.
+
+---
+
+## Orchestration Modes
+
+### Freeform
+
+Freeform is the default mode. Agents participate in a natural, unstructured conversation. You direct messages to the whole room or to a specific agent by name. Agents can respond to you and to each other, ask clarifying questions, share findings, and build on each other's responses organically.
+
+Use Freeform when:
+- You're exploring a problem and haven't defined a clear workflow yet
+- You want to have an open discussion across multiple areas of expertise
+- The task doesn't require structured deliberation or formal rounds
+
+---
+
+### Debate
+
+Debate mode structures collaboration into three formal rounds designed to surface disagreement and force rigorous reasoning. No agent can see the others' responses until all have submitted for that round.
+
+<Steps>
+  <Step title="Round 1 — Independent Responses">
+    Every agent in the room receives the same prompt and responds independently, without seeing what others have written. This prevents anchoring — the first response cannot bias the rest.
+  </Step>
+  <Step title="Round 2 — Rebuttals">
+    All Round 1 responses are revealed simultaneously. Each agent then reads every other agent's response and writes a rebuttal: agreeing, disagreeing, or extending with evidence.
+  </Step>
+  <Step title="Round 3 — Synthesis">
+    The orchestration engine (or a designated Synthesis agent) produces a final summary that captures consensus positions, unresolved disagreements, and the strongest arguments from each side.
+  </Step>
+</Steps>
+
+Use Debate when:
+- You need to evaluate a technical decision from multiple perspectives (e.g., choosing between two architectures)
+- You want to stress-test a proposal before committing to it
+- You're running a formal design review and want dissenting opinions documented
+
+---
+
+### Research
+
+Research mode is optimized for knowledge gathering. Agents investigate a topic in parallel, each exploring different sources or angles, then compare findings before producing a unified report.
+
+<Steps>
+  <Step title="Phase 1 — Independent Investigation">
+    Each agent receives the research question and independently gathers information. Agents with `network_access` permission fetch external sources; all agents read relevant project files. Each agent builds its own evidence set without coordinating with peers.
+  </Step>
+  <Step title="Phase 2 — Evidence Comparison">
+    Agents share their findings with the room. Contradictions, gaps, and corroborating evidence are identified. Agents may ask each other clarifying questions in this phase.
+  </Step>
+  <Step title="Phase 3 — Synthesis">
+    A designated Researcher or Synthesis agent (or the engine itself) compiles a structured report: key findings, conflicting data, confidence levels, and recommended next steps.
+  </Step>
+</Steps>
+
+Use Research when:
+- You're evaluating external libraries, frameworks, or vendors
+- You need a survey of best practices across a technical domain
+- You want agents to cross-check each other's sources rather than funnel through a single perspective
+
+---
+
+### Code Review
+
+Code Review mode gives agents access to actual diffs rather than pasted code snippets. When you submit a code review request, the orchestration engine attaches the relevant file diffs from the workspace and routes them to each reviewer agent simultaneously.
+
+Each agent produces a structured review covering:
+- **Correctness** — logic errors, edge cases, off-by-one errors
+- **Security** — vulnerabilities matching its expertise (your Security agent will go deeper here)
+- **Style and readability** — adherence to project conventions
+- **Test coverage** — missing or insufficient tests
+- **Actionable suggestions** — specific line-level changes, not just observations
+
+After all agents submit their reviews, you can see a consolidated view that highlights where multiple agents flagged the same issue (high confidence) versus where only one agent raised a concern (worth investigating).
+
+Use Code Review when:
+- You want multi-perspective review of a pull request or feature branch
+- You need a Security agent to specifically audit a diff for vulnerabilities while a QA agent evaluates test coverage simultaneously
+- You want consistent, structured feedback rather than conversational comments
+
+---
+
+### Red Team / Blue Team
+
+Red Team / Blue Team mode sets up an adversarial dynamic between two groups of agents — one attempting to find or exploit weaknesses, the other defending. This mode is purpose-built for security testing, but teams also use it for resilience testing of architectural proposals and API designs.
+
+<Steps>
+  <Step title="Setup">
+    You assign each agent to either the **Red Team** (attackers) or the **Blue Team** (defenders). You define the target: a specific codebase path, an API surface, an authentication flow, or an architecture diagram.
+  </Step>
+  <Step title="Red Team Phase">
+    Red Team agents analyze the target and produce a list of attack vectors, exploitation scenarios, and weaknesses — without any interaction with the Blue Team.
+  </Step>
+  <Step title="Blue Team Response">
+    Blue Team agents receive the Red Team findings and propose defenses, patches, and mitigations for each identified weakness.
+  </Step>
+  <Step title="Adjudication">
+    A neutral agent (or you) reviews the full exchange, scores the findings by severity, and produces a remediation plan.
+  </Step>
+</Steps>
+
+Use Red Team / Blue Team when:
+- You're preparing a feature for production and want adversarial security review
+- You want to validate that your Security agent's defenses hold up against a dedicated attacker mindset
+- You're onboarding a new codebase and need a structured threat model
+
+---
+
+### Expert Panel
+
+Expert Panel mode routes your question to all agents simultaneously and presents their responses in a structured panel format — one response per agent, labeled by role. There are no formal rounds or rebuttals. It is a fast, parallel query across multiple expertise areas.
+
+Use Expert Panel when:
+- You have a cross-cutting question that touches multiple domains (e.g., "Is this approach sound from architecture, security, and performance perspectives?")
+- You want fast parallel input without the deliberation overhead of Debate mode
+- You're looking for a broad initial scan before going deep in one direction
+
+---
+
+### Socratic
+
+Socratic mode enables agents to guide you toward a solution through structured questioning rather than providing direct answers. Agents respond to your prompts with clarifying questions that help you think through assumptions, surface unstated requirements, and reason about trade-offs.
+
+Use Socratic when:
+- You want to think through a problem yourself rather than hand it off
+- You're running a design session and want to pressure-test your own reasoning
+- You're using AI Forge as a learning tool
+
+---
+
+### Synthesis
+
+Synthesis mode collects input from multiple agents and produces a single, consolidated output document. Each agent contributes its perspective in its domain, and a designated Synthesis agent (or the engine) merges the contributions into one coherent artifact — an architecture document, a test plan, a technical specification, or a research report.
+
+Use Synthesis when:
+- You need a single deliverable that incorporates multiple areas of expertise
+- You're producing a document (spec, RFC, runbook) that would otherwise require multiple individual conversations stitched together manually
+
+---
+
+### Autonomous Development
+
+Autonomous Development mode enables an agent (typically your Developer or DevOps agent at **Autonomous** autonomy level) to work through a software task end-to-end with minimal human interruption. The agent executes a continuous loop until it reaches completion, failure, or cancellation.
+
+<Steps>
+  <Step title="Plan">
+    The agent reads the task description and relevant files, then produces a step-by-step implementation plan. In **Semi-Autonomous** mode, it shows you the plan and waits for approval before continuing. In **Autonomous** mode, it proceeds immediately.
+  </Step>
+  <Step title="Read">
+    The agent reads all files it needs to understand the codebase context: existing implementations, test files, configuration, and documentation.
+  </Step>
+  <Step title="Modify">
+    The agent writes or edits the files required to implement the task, following the plan from the first step.
+  </Step>
+  <Step title="Run">
+    The agent executes build commands, linters, and any relevant scripts to check that the changes compile and meet basic sanity checks.
+  </Step>
+  <Step title="Test">
+    The agent runs the test suite and inspects output. Passing tests move it toward completion; failing tests trigger the Fix step.
+  </Step>
+  <Step title="Fix">
+    The agent reads failing test output, identifies the root cause, edits the relevant files, and loops back to Run and Test. It continues this loop until all tests pass or it determines it has reached an unrecoverable failure state and reports back to you.
+  </Step>
+</Steps>
+
+<Warning>
+  Autonomous Development requires `read_files`, `write_files`, and `execute_commands` permissions at minimum. Review the agent's system prompt carefully before enabling this mode — a vague or overly broad prompt will produce unpredictable file changes. Start with `ASK_BEFORE_CHANGES` execution mode and **Semi-Autonomous** autonomy level for your first few Autonomous Development sessions.
+</Warning>
+
+---
+
+## Freeform vs. Debate: Example Chatroom Exchanges
+
+<Tabs>
+  <Tab title="Freeform Mode">
+    ```
+    You: Should we use PostgreSQL or MongoDB for storing user sessions?
+
+    Alex (Architect): For session data, I'd lean PostgreSQL. You likely
+    already have it in your stack, sessions are relational (user → token →
+    expiry), and you get ACID guarantees. The schema is simple enough that
+    document flexibility doesn't buy you much here.
+
+    Sam (Developer): Agreed on Postgres. We're already using it for user
+    accounts. I'd actually suggest using Redis in front of it as a cache
+    layer — sub-millisecond lookups for active sessions, Postgres as the
+    source of truth for persistence.
+
+    Alex (Architect): That's a solid pattern. Redis TTL handling also
+    makes session expiry cleaner to implement than a cron job deleting
+    stale rows.
+
+    You: Does Redis introduce a new infrastructure dependency we should
+    worry about?
+
+    Dana (DevOps): We already run Redis for the job queue, so no new
+    dependency. I can add session storage to the same cluster with a
+    separate key namespace. Low overhead.
+    ```
+  </Tab>
+  <Tab title="Debate Mode">
+    ```
+    You: Should we use PostgreSQL or MongoDB for storing user sessions?
+
+    ── Round 1: Independent Responses ──────────────────────────────
+
+    Alex (Architect): PostgreSQL. Sessions are structured, relational,
+    and benefit from ACID semantics. The schema is trivial. No compelling
+    reason to introduce a document store for this use case.
+
+    Sam (Developer): MongoDB. We're early-stage — schema flexibility
+    matters. If session data grows to include nested device info or
+    feature flags, we won't need migrations. Developer velocity wins.
+
+    Dana (DevOps): PostgreSQL. We already operate it. Introducing MongoDB
+    adds a second database engine to maintain, monitor, and back up.
+    Operational cost outweighs flexibility gains at our scale.
+
+    ── Round 2: Rebuttals ───────────────────────────────────────────
+
+    Alex (Architect) → Sam: The "flexibility" argument is weak for session
+    data specifically. Sessions have a stable, well-known shape. If feature
+    flags need nesting, that's a separate concern — don't let future
+    hypotheticals drive present infrastructure choices.
+
+    Sam (Developer) → Alex, Dana: Fair pushback on schema stability. I
+    concede sessions are unlikely to require document flexibility. My
+    concern is migration overhead on a fast-moving schema elsewhere — but
+    that's out of scope for this question. I'll revise toward PostgreSQL.
+
+    Dana (DevOps) → Sam: Operational overhead is the decisive factor.
+    MongoDB would mean a third data store (we have Postgres + Redis).
+    That's two additional failure domains, two monitoring integrations,
+    and two backup strategies for marginal benefit.
+
+    ── Round 3: Synthesis ───────────────────────────────────────────
+
+    Synthesis: Strong consensus for PostgreSQL with Redis as a caching
+    layer. Key reasons: (1) existing infrastructure, (2) ACID guarantees,
+    (3) no meaningful flexibility benefit for session-shaped data. No
+    unresolved disagreements. Recommended action: implement session storage
+    in PostgreSQL with a Redis TTL cache. Dana to configure key namespace
+    in the existing Redis cluster.
+    ```
+  </Tab>
+</Tabs>
+
+## Choosing the Right Mode
+
+| Goal | Recommended Mode |
+|---|---|
+| Open-ended exploration or quick questions | Freeform |
+| Evaluating a technical decision with multiple perspectives | Debate |
+| Surveying a topic or evaluating external options | Research |
+| Reviewing a pull request or diff | Code Review |
+| Security testing a feature or codebase | Red Team / Blue Team |
+| Fast parallel input across domains | Expert Panel |
+| Thinking through a problem yourself | Socratic |
+| Producing a multi-contributor document | Synthesis |
+| Implementing a feature end-to-end | Autonomous Development |

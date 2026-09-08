@@ -1,0 +1,300 @@
+---
+title: "Chatrooms API Reference — AI Forge"
+sidebarTitle: "Chatrooms"
+description: "Create chatrooms, add agents, send messages, and retrieve conversation history through the AI Forge Chatrooms API endpoints."
+---
+
+Chatrooms are the collaborative spaces where humans and agents exchange messages within a project. You can create multiple chatrooms per project — for example, separating research threads from code-generation workflows — and assign different sets of agents to each one. The Chatrooms API lets you create rooms, post messages, and read conversation history programmatically.
+
+## The message object
+
+<ResponseField name="id" type="string">
+  Unique identifier for the message, prefixed with `msg_`.
+</ResponseField>
+
+<ResponseField name="chatroomId" type="string">
+  The ID of the chatroom this message belongs to.
+</ResponseField>
+
+<ResponseField name="role" type="string">
+  Who sent the message: `"user"` for human-initiated messages, `"agent"` for agent-generated responses.
+</ResponseField>
+
+<ResponseField name="authorId" type="string | null">
+  The ID of the agent that sent this message. `null` for user messages.
+</ResponseField>
+
+<ResponseField name="content" type="string">
+  The text content of the message.
+</ResponseField>
+
+<ResponseField name="targetAgentId" type="string | null">
+  When present, the message was directed at a specific agent rather than broadcast to all agents in the room.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of when the message was created.
+</ResponseField>
+
+---
+
+## List chatrooms
+
+Retrieve all chatrooms in a project.
+
+```
+GET /projects/:id/chatrooms
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Example request
+
+```bash title="List chatrooms"
+curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "chatrooms": [
+    {
+      "id": "room_01hwgh5t9p",
+      "name": "General",
+      "agentIds": ["agent_01hwcd4f7g", "agent_01hwef9q3r"],
+      "createdAt": "2024-05-10T09:10:00Z"
+    },
+    {
+      "id": "room_01hwij7v2k",
+      "name": "Code Review",
+      "agentIds": ["agent_01hwef9q3r"],
+      "createdAt": "2024-05-11T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Create a chatroom
+
+Create a new chatroom and optionally assign agents to it.
+
+```
+POST /projects/:id/chatrooms
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project in which to create the chatroom.
+</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string" required>
+  A name for the chatroom. Must be between 1 and 100 characters.
+</ParamField>
+
+<ParamField body="agentIds" type="array">
+  An optional array of agent IDs to add to the chatroom at creation time. Agents can be added or removed later.
+</ParamField>
+
+### Example request
+
+```bash title="Create a chatroom"
+curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Bug Triage",
+    "agentIds": ["agent_01hwcd4f7g"]
+  }'
+```
+
+### Example response
+
+```json title="201 Created"
+{
+  "chatroom": {
+    "id": "room_01hwkl9x4m",
+    "name": "Bug Triage",
+    "agentIds": ["agent_01hwcd4f7g"],
+    "createdAt": "2024-05-14T13:30:00Z"
+  }
+}
+```
+
+---
+
+## Send a message
+
+Post a message to a chatroom. All agents assigned to the room will receive the message, unless you direct it to a specific agent using `targetAgentId`.
+
+```
+POST /projects/:id/chatrooms/:roomId/messages
+```
+
+Agent responses are delivered asynchronously. After posting a message, listen to the [activity stream](/api-reference/activity) for `agent_response` and `turn_finished` events to know when agents have replied.
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+<ParamField path="roomId" type="string" required>
+  The ID of the chatroom to send the message to.
+</ParamField>
+
+### Request body
+
+<ParamField body="content" type="string" required>
+  The text content of the message. Maximum 32,000 characters.
+</ParamField>
+
+<ParamField body="targetAgentId" type="string">
+  If provided, only the specified agent will process and respond to the message. Useful for directing follow-up questions to a particular agent in a multi-agent room.
+</ParamField>
+
+### Example request
+
+```bash title="Send a message"
+curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms/room_01hwkl9x4m/messages \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Please review the latest changes to src/auth/middleware.ts and flag any security issues.",
+    "targetAgentId": "agent_01hwef9q3r"
+  }'
+```
+
+### Example response
+
+```json title="201 Created"
+{
+  "message": {
+    "id": "msg_01hwmn0b5s",
+    "chatroomId": "room_01hwkl9x4m",
+    "role": "user",
+    "authorId": null,
+    "content": "Please review the latest changes to src/auth/middleware.ts and flag any security issues.",
+    "targetAgentId": "agent_01hwef9q3r",
+    "createdAt": "2024-05-14T13:35:00Z"
+  }
+}
+```
+
+<Note>
+  The response contains your **user** message only. The agent's reply will arrive as a separate `agent_response` activity event. Use the [activity stream](/api-reference/activity) or poll the [list messages](#list-messages) endpoint to retrieve agent replies.
+</Note>
+
+---
+
+## List messages
+
+Retrieve the message history for a chatroom. Results are returned in reverse chronological order (newest first) and can be paginated using a cursor.
+
+```
+GET /projects/:id/chatrooms/:roomId/messages
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+<ParamField path="roomId" type="string" required>
+  The ID of the chatroom.
+</ParamField>
+
+### Query parameters
+
+<ParamField query="limit" type="integer">
+  Number of messages to return. Defaults to `25`, maximum `100`.
+</ParamField>
+
+<ParamField query="before" type="string">
+  Return messages created before this message ID (cursor-based pagination). Use the `id` from the last item in the previous response to page backwards through history.
+</ParamField>
+
+### Example request
+
+```bash title="List recent messages"
+curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/chatrooms/room_01hwkl9x4m/messages?limit=3" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "messages": [
+    {
+      "id": "msg_01hwmn2c7t",
+      "chatroomId": "room_01hwkl9x4m",
+      "role": "agent",
+      "authorId": "agent_01hwef9q3r",
+      "content": "I reviewed `src/auth/middleware.ts`. Found one high-severity issue: the JWT secret is being read from `req.headers` rather than from the environment, making it trivially forgeable. See line 42.",
+      "targetAgentId": null,
+      "createdAt": "2024-05-14T13:35:18Z"
+    },
+    {
+      "id": "msg_01hwmn0b5s",
+      "chatroomId": "room_01hwkl9x4m",
+      "role": "user",
+      "authorId": null,
+      "content": "Please review the latest changes to src/auth/middleware.ts and flag any security issues.",
+      "targetAgentId": "agent_01hwef9q3r",
+      "createdAt": "2024-05-14T13:35:00Z"
+    }
+  ],
+  "hasMore": false
+}
+```
+
+---
+
+## End-to-end example: message → agent response
+
+The following example shows a complete flow: send a message, then consume the activity stream to capture the agent's reply in real time.
+
+```js title="Send a message and stream the agent reply"
+const PROJECT_ID = "proj_01hw3k9z2x";
+const ROOM_ID = "room_01hwkl9x4m";
+const BASE = "https://api.aiforge.app/v1";
+const TOKEN = process.env.AIFORGE_API_TOKEN;
+
+// 1. Send the message
+await fetch(`${BASE}/projects/${PROJECT_ID}/chatrooms/${ROOM_ID}/messages`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ content: "Summarise the README in three bullet points." }),
+});
+
+// 2. Open the activity stream and wait for the agent's response
+const stream = new EventSource(
+  `${BASE}/projects/${PROJECT_ID}/activity/stream`,
+  { headers: { Authorization: `Bearer ${TOKEN}` } }
+);
+
+stream.addEventListener("agent_response", (event) => {
+  const data = JSON.parse(event.data);
+  console.log("Agent replied:", data.content);
+});
+
+stream.addEventListener("turn_finished", () => {
+  console.log("Turn complete.");
+  stream.close();
+});
+```

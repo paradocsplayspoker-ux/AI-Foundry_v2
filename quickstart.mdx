@@ -1,47 +1,93 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Quickstart: Build Something With AI Forge"
+sidebarTitle: "Quickstart"
+description: "Get from zero to a working AI agent team in minutes — create a project, connect a provider, add an agent, and send your first instruction."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+This guide walks you through everything you need to send your first instruction to an AI agent and watch it write real code in your project. The entire process takes about five minutes, and by the end you'll have a live project with an agent ready to build.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+### Create Your First Project
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+Open AI Forge and click **New Project** on the dashboard. Give your project a name — for example, `hello-express` — and click **Create**. AI Forge provisions a fresh, isolated workspace for your project: a persistent filesystem, a terminal bound to your project root, and an empty file tree ready for your agents to populate.
 
-    ```bash
-    your-cli start
-    ```
-  </Step>
-</Steps>
+<Note>
+  Each project is completely isolated. Agents inside one project cannot read files from another project, and your API keys are never shared across project boundaries.
+</Note>
+
+### Connect an AI Provider
+
+Your agents need a language model to work with. Navigate to **Settings → Providers** in the left sidebar and click **Add Provider**.
+
+Select your provider — OpenAI is a good starting point — and paste your API key into the **API Key** field. Click **Save**. AI Forge stores your key server-side and never exposes it to the browser or to agent tool calls.
+
+```
+Settings → Providers → Add Provider → Select "OpenAI" → Paste API Key → Save
+```
 
 <Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
-
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+  You can add multiple providers and assign different models to different agents on the same team. For example, use GPT-4o for your Architect agent and a faster model like `gpt-4o-mini` for your Reviewer.
 </Tip>
+
+### Create Your First Agent
+
+With your provider connected, open your project and navigate to the **Agents** tab in the right-hand panel. Click **Add Agent** and fill in the following:
+
+- **Name** — Something descriptive, like `Dev`
+- **Role** — Select **Developer** from the dropdown (this pre-fills a sensible system prompt)
+- **Provider** — Select the provider you just connected (e.g., OpenAI)
+- **Model** — Choose a model, such as `gpt-4o`
+- **Permissions** — For now, enable **Read**, **Write**, and **Execute** so your agent can read your files, write new ones, and run terminal commands
+
+Click **Create Agent**. Your agent now appears in the agent roster and is ready to receive instructions.
+
+<Note>
+  You can fine-tune your agent's system prompt, adjust its permissions, and add more agents at any time. Start simple and expand your team as your project grows.
+</Note>
+
+### Open the Chatroom and Send Your First Instruction
+
+Click the **Chatroom** tab in the right-hand panel. You'll see a shared chat channel where you and your agents communicate. Select your `Dev` agent from the **@mention** list or simply type your instruction — AI Forge routes it to the active agent automatically.
+
+Type a clear, actionable instruction and press **Send**:
+
+```
+Create a simple Express.js hello world server in server.js.
+Install the express package, add a GET / route that returns
+"Hello from AI Forge!", and start the server on port 3000.
+```
+
+<Tip>
+  The more specific your instruction, the better your agent performs. Include the target filename, the framework, and the expected behavior so the agent doesn't have to guess.
+</Tip>
+
+### Watch the Agent Work
+
+After you send your instruction, switch to the **Activity** tab in the bottom panel. You'll see a real-time stream of everything your agent is doing:
+
+- **Reading** files to understand the project structure
+- **Writing** `server.js` and `package.json` with the generated code
+- **Executing** `npm install` in the terminal to install dependencies
+- **Reporting** a summary when the task is complete
+
+As the agent writes files, the **Monaco editor** in the center panel opens a diff view showing exactly what changed. You can review each edit and click **Accept** to apply it or **Reject** to discard it before it lands on disk.
+
+```
+Activity Feed → file_write: server.js (+18 lines)
+Activity Feed → terminal_execute: npm install
+Activity Feed → terminal_execute: node server.js → exit 0
+```
+
+Once the agent reports completion, open `server.js` in the file explorer and confirm the output. You can also open the terminal yourself and run `node server.js` to see the server start.
+
+</Steps>
+
+## What's Next
+
+You've created a project, connected a provider, built an agent, and watched it write and run real code. From here, you can:
+
+- **Add more agents** — Create a Reviewer agent to critique the code and a Tester agent to write unit tests.
+- **Try an orchestration mode** — Switch to **Code Review** mode to have agents debate and refine each other's output automatically.
+- **Explore the workspace** — Learn about the file explorer, diff viewer, and terminal in the [Workspace Overview](/workspace/overview).
+- **Dive into concepts** — Read [Core Concepts](/core-concepts) to understand how projects, agents, and orchestration modes fit together.

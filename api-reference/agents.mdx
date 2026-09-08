@@ -1,0 +1,433 @@
+---
+title: "Agents API Reference — AI Forge"
+sidebarTitle: "Agents"
+description: "Create and configure AI agents inside your projects — set roles, models, system prompts, permissions, and autonomy levels via the REST API."
+---
+
+Agents are the autonomous workers inside an AI Forge project. Each agent has a dedicated role, runs on a configured AI model, and operates within a defined permission boundary. The Agents API lets you create, inspect, update, and remove agents programmatically, making it straightforward to template agent configurations and deploy them consistently across projects.
+
+## The agent object
+
+<ResponseField name="id" type="string">
+  Unique identifier for the agent, prefixed with `agent_`.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Human-readable name for the agent (for example, `"Triage Bot"` or `"Code Reviewer"`).
+</ResponseField>
+
+<ResponseField name="role" type="string">
+  The agent's functional role within the project (for example, `"orchestrator"`, `"researcher"`, `"coder"`).
+</ResponseField>
+
+<ResponseField name="provider" type="string">
+  The AI provider powering this agent (for example, `"openai"`, `"anthropic"`, `"google"`).
+</ResponseField>
+
+<ResponseField name="model" type="string">
+  The specific model identifier (for example, `"gpt-4o"`, `"claude-3-5-sonnet-20241022"`).
+</ResponseField>
+
+<ResponseField name="credentialId" type="string">
+  The ID of the stored credential used to authenticate with the provider.
+</ResponseField>
+
+<ResponseField name="systemPrompt" type="string | null">
+  The system-level instructions that shape the agent's behavior and persona.
+</ResponseField>
+
+<ResponseField name="permissions" type="object">
+  A set of boolean flags controlling what the agent is allowed to do.
+
+  <Expandable title="permissions fields">
+    <ResponseField name="permissions.read_files" type="boolean">
+      Whether the agent can read files in the project workspace.
+    </ResponseField>
+    <ResponseField name="permissions.write_files" type="boolean">
+      Whether the agent can create or overwrite files.
+    </ResponseField>
+    <ResponseField name="permissions.execute_commands" type="boolean">
+      Whether the agent can execute terminal commands.
+    </ResponseField>
+    <ResponseField name="permissions.browse_web" type="boolean">
+      Whether the agent can make outbound web requests.
+    </ResponseField>
+    <ResponseField name="permissions.manage_agents" type="boolean">
+      Whether the agent can create or modify other agents in the project.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="autonomy" type="string">
+  Controls how independently the agent acts. One of `"supervised"` (requires human approval for actions), `"semi"` (asks for confirmation on destructive actions only), or `"full"` (acts without confirmation).
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current agent status: `"idle"`, `"running"`, or `"error"`.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of when the agent was created.
+</ResponseField>
+
+---
+
+## List agents
+
+Retrieve all agents belonging to a project.
+
+```
+GET /projects/:id/agents
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project whose agents you want to list.
+</ParamField>
+
+### Example request
+
+```bash title="List agents in a project"
+curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/agents \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "agents": [
+    {
+      "id": "agent_01hwcd4f7g",
+      "name": "Triage Bot",
+      "role": "orchestrator",
+      "provider": "anthropic",
+      "model": "claude-3-5-sonnet-20241022",
+      "credentialId": "cred_01hwbc1a2b",
+      "systemPrompt": "You are a triage agent responsible for routing support tickets.",
+      "permissions": {
+        "read_files": true,
+        "write_files": false,
+        "execute_commands": false,
+        "browse_web": true,
+        "manage_agents": false
+      },
+      "autonomy": "semi",
+      "status": "idle",
+      "createdAt": "2024-05-10T09:05:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Create an agent
+
+Add a new agent to a project.
+
+```
+POST /projects/:id/agents
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project in which to create the agent.
+</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string" required>
+  A human-readable name for the agent.
+</ParamField>
+
+<ParamField body="role" type="string" required>
+  The agent's functional role (for example, `"researcher"`, `"coder"`, `"reviewer"`).
+</ParamField>
+
+<ParamField body="provider" type="string" required>
+  The AI provider to use. Supported values: `"openai"`, `"anthropic"`, `"google"`, `"mistral"`.
+</ParamField>
+
+<ParamField body="model" type="string" required>
+  The model identifier for the chosen provider (for example, `"gpt-4o"`, `"claude-3-5-sonnet-20241022"`).
+</ParamField>
+
+<ParamField body="credentialId" type="string" required>
+  The ID of a stored provider credential to use for inference requests.
+</ParamField>
+
+<ParamField body="systemPrompt" type="string">
+  System-level instructions that define the agent's behavior, tone, and constraints.
+</ParamField>
+
+<ParamField body="permissions" type="object">
+  An object of boolean flags granting specific capabilities. All default to `false` if omitted.
+
+  <Expandable title="permissions fields">
+    <ParamField body="permissions.read_files" type="boolean">
+      Allow the agent to read project files. Default: `false`.
+    </ParamField>
+    <ParamField body="permissions.write_files" type="boolean">
+      Allow the agent to create or overwrite files. Default: `false`.
+    </ParamField>
+    <ParamField body="permissions.execute_commands" type="boolean">
+      Allow the agent to run terminal commands. Default: `false`.
+    </ParamField>
+    <ParamField body="permissions.browse_web" type="boolean">
+      Allow the agent to make outbound HTTP requests. Default: `false`.
+    </ParamField>
+    <ParamField body="permissions.manage_agents" type="boolean">
+      Allow the agent to create or modify other agents. Default: `false`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="autonomy" type="string">
+  How independently the agent operates. One of `"supervised"`, `"semi"`, or `"full"`. Defaults to `"supervised"`.
+</ParamField>
+
+### Example request
+
+```bash title="Create an agent"
+curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/agents \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Code Reviewer",
+    "role": "reviewer",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "credentialId": "cred_01hwbc1a2b",
+    "systemPrompt": "You are a senior engineer. Review code for correctness, security, and style.",
+    "permissions": {
+      "read_files": true,
+      "write_files": false,
+      "execute_commands": false,
+      "browse_web": false,
+      "manage_agents": false
+    },
+    "autonomy": "semi"
+  }'
+```
+
+### Example response
+
+```json title="201 Created"
+{
+  "agent": {
+    "id": "agent_01hwef9q3r",
+    "name": "Code Reviewer",
+    "role": "reviewer",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "credentialId": "cred_01hwbc1a2b",
+    "systemPrompt": "You are a senior engineer. Review code for correctness, security, and style.",
+    "permissions": {
+      "read_files": true,
+      "write_files": false,
+      "execute_commands": false,
+      "browse_web": false,
+      "manage_agents": false
+    },
+    "autonomy": "semi",
+    "status": "idle",
+    "createdAt": "2024-05-14T12:00:00Z"
+  }
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | A required field is missing or a value is not valid. |
+| `404` | `not_found` | The specified `credentialId` does not exist. |
+
+---
+
+## Get an agent
+
+Retrieve the full details of a single agent.
+
+```
+GET /projects/:id/agents/:agentId
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+<ParamField path="agentId" type="string" required>
+  The ID of the agent.
+</ParamField>
+
+### Example request
+
+```bash title="Get an agent"
+curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/agents/agent_01hwef9q3r \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "agent": {
+    "id": "agent_01hwef9q3r",
+    "name": "Code Reviewer",
+    "role": "reviewer",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "credentialId": "cred_01hwbc1a2b",
+    "systemPrompt": "You are a senior engineer. Review code for correctness, security, and style.",
+    "permissions": {
+      "read_files": true,
+      "write_files": false,
+      "execute_commands": false,
+      "browse_web": false,
+      "manage_agents": false
+    },
+    "autonomy": "semi",
+    "status": "idle",
+    "createdAt": "2024-05-14T12:00:00Z"
+  }
+}
+```
+
+---
+
+## Update an agent
+
+Update one or more fields on an existing agent. Only the fields you include in the request body are modified.
+
+```
+PATCH /projects/:id/agents/:agentId
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+<ParamField path="agentId" type="string" required>
+  The ID of the agent to update.
+</ParamField>
+
+### Request body
+
+All fields are optional. Include only the ones you want to change.
+
+<ParamField body="name" type="string">
+  New name for the agent.
+</ParamField>
+
+<ParamField body="role" type="string">
+  Updated role identifier.
+</ParamField>
+
+<ParamField body="model" type="string">
+  New model identifier. Must be compatible with the agent's existing `provider`.
+</ParamField>
+
+<ParamField body="systemPrompt" type="string">
+  Replacement system prompt. Pass `null` to remove the current prompt.
+</ParamField>
+
+<ParamField body="permissions" type="object">
+  Updated permission flags. You only need to include the flags you want to change — unspecified flags are not altered.
+</ParamField>
+
+<ParamField body="autonomy" type="string">
+  Updated autonomy level: `"supervised"`, `"semi"`, or `"full"`.
+</ParamField>
+
+### Example request
+
+```bash title="Update an agent's autonomy and model"
+curl -X PATCH https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/agents/agent_01hwef9q3r \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "autonomy": "full"
+  }'
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "agent": {
+    "id": "agent_01hwef9q3r",
+    "name": "Code Reviewer",
+    "role": "reviewer",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "credentialId": "cred_01hwbc1a2b",
+    "systemPrompt": "You are a senior engineer. Review code for correctness, security, and style.",
+    "permissions": {
+      "read_files": true,
+      "write_files": false,
+      "execute_commands": false,
+      "browse_web": false,
+      "manage_agents": false
+    },
+    "autonomy": "full",
+    "status": "idle",
+    "createdAt": "2024-05-14T12:00:00Z"
+  }
+}
+```
+
+---
+
+## Delete an agent
+
+Permanently remove an agent from a project.
+
+```
+DELETE /projects/:id/agents/:agentId
+```
+
+<Warning>
+  Deleting an agent is **irreversible**. Any chatroom history referencing this agent will be retained, but the agent can no longer be invoked or updated.
+</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+<ParamField path="agentId" type="string" required>
+  The ID of the agent to delete.
+</ParamField>
+
+### Example request
+
+```bash title="Delete an agent"
+curl -X DELETE https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/agents/agent_01hwef9q3r \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "deleted": true,
+  "id": "agent_01hwef9q3r"
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `404` | `not_found` | No agent with the given ID exists in this project. |
+| `409` | `conflict` | The agent is currently running. Stop any active runs before deleting. |

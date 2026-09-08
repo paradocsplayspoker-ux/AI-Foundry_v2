@@ -1,0 +1,78 @@
+---
+title: "Monaco Editor: Writing and Reviewing Code in AI Forge"
+sidebarTitle: "IDE / Editor"
+description: "Use the Monaco editor to open files, manage tabs, review agent-proposed diffs, and keep your code in sync with your AI agent team."
+---
+
+The Monaco editor is the heart of the AI Forge workspace — it's the same editor engine that powers VS Code, running directly in your browser against a real backend filesystem. You write, read, and review code here, and when your agents propose changes you review their diffs and decide what lands.
+
+<Note>
+  The editor reflects the real backend filesystem at all times. When an agent writes a file, the change is staged as a diff and shown to you before it touches disk — unless you have AUTO_APPLY mode enabled. What you see accepted in the editor is what's actually on disk.
+</Note>
+
+## Opening Files
+
+Click any file in the **File Explorer** (left panel) to open it in the editor. The file opens in a new tab in the tab bar at the top of the center panel. You can have as many tabs open as you like; tabs persist across browser refreshes for the duration of your session.
+
+To open a file without using the mouse, use the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`) and type **Open File**, then start typing the filename to filter results.
+
+## Multi-File Tabs
+
+The tab bar at the top of the editor shows all currently open files. Each tab displays:
+
+- The **filename** (e.g., `server.js`)
+- A **dirty-state indicator** — a filled dot (●) appears on the tab when the file has unsaved local changes
+- A **diff badge** — an orange indicator when an agent has proposed a change to that file that hasn't been reviewed yet
+
+Click a tab to switch to that file. Middle-click or click the **×** on a tab to close it. You can also drag tabs left and right to reorder them.
+
+## Syntax Highlighting
+
+Monaco automatically detects the language of each file from its extension and applies full syntax highlighting. All major languages are supported, including JavaScript, TypeScript, Python, Go, Rust, HTML, CSS, JSON, YAML, Markdown, and more. You can override the detected language using the language selector in the bottom-right status bar.
+
+## Saving Files
+
+To save your own edits to a file, press `Ctrl+S` / `Cmd+S`. The dirty-state indicator clears and the file is written to the backend filesystem immediately.
+
+<Tip>
+  AI Forge does not auto-save your manual edits — only agent writes go through the diff review pipeline. Press `Ctrl+S` to persist your own changes explicitly.
+</Tip>
+
+## Diff Review Mode
+
+When an agent proposes a change to a file — by calling `write_file` or `patch_file` — the editor switches that file's tab into **Diff Review Mode** and highlights the proposed change as a standard unified diff:
+
+- **Green lines** (additions) show what the agent wants to add
+- **Red lines** (deletions) show what the agent wants to remove
+- **Unchanged lines** are shown for context
+
+At the top of the diff view you have three controls:
+
+| Control | Action |
+|---|---|
+| **Accept** | Apply the diff to the real filesystem and exit diff mode |
+| **Reject** | Discard the agent's proposed change; the agent receives a rejection signal |
+| **Edit** | Open the incoming change in a standard editable buffer so you can modify it before accepting |
+
+You can also review diffs from the **Diff Viewer** tab in the bottom drawer, which shows all pending agent changes in a queue so you can process them one by one without having to hunt through open tabs.
+
+## Agent File Changes and Sync
+
+When an agent writes a file that you currently have open in a tab, AI Forge notifies you in two ways:
+
+1. An **orange diff badge** appears on the tab
+2. The **Activity Feed** logs the `file_write` event with the agent name, filename, and line count
+
+If you accept the diff, the editor buffer updates to reflect the new contents. If you reject it, the buffer remains unchanged. If the file was not open, it is written directly to the filesystem and available the next time you open it.
+
+## Version History
+
+Every file in your project maintains a **version snapshot** each time an accepted agent edit lands on disk. To view a file's history, right-click its tab and select **Version History**. From the history panel you can:
+
+- Browse previous snapshots with timestamps and agent attribution
+- Diff any two snapshots against each other
+- Restore the file to any earlier snapshot with a single click
+
+<Info>
+  Version snapshots are stored per-project and are retained for the lifetime of the project. They are not a replacement for Git — consider initializing a Git repository inside your project if you need full version control with branching.
+</Info>

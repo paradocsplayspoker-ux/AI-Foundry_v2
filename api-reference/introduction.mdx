@@ -1,0 +1,115 @@
+---
+title: "AI Forge API — Getting Started Guide"
+sidebarTitle: "Introduction"
+description: "Automate projects, agents, files, and messaging in AI Forge with the REST API. All responses are JSON and authenticate via Bearer token."
+---
+
+The AI Forge API gives you programmatic access to every resource in your workspace — from spinning up multi-agent projects to sending messages, reading files, executing terminal commands, and streaming live activity events. Whether you are building a CI/CD integration, a custom dashboard, or an automated testing pipeline, the API exposes the same capabilities you interact with in the UI.
+
+## Base URL
+
+All API requests target the following base URL:
+
+```
+https://api.aiforge.app/v1
+```
+
+Every endpoint is versioned under `/v1`. When breaking changes are introduced, a new version path will be announced with a migration guide.
+
+## Authentication
+
+The API uses Bearer token authentication. Include your API token in the `Authorization` header on every request:
+
+```
+Authorization: Bearer <your-api-token>
+```
+
+You can generate and manage your tokens in **Settings → API Tokens**. See the [Authentication](/api-reference/authentication) page for full details.
+
+## Rate Limits
+
+All endpoints are rate-limited to protect service stability. When you exceed the allowed request rate, the API returns a `429 Too Many Requests` response. Implement exponential back-off in your client and respect the `Retry-After` header included in 429 responses to avoid disruptions.
+
+## Error Format
+
+Every error response uses a consistent JSON envelope:
+
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string"
+  }
+}
+```
+
+| Status | Meaning |
+|--------|---------|
+| `400` | Bad Request — your request body or parameters are invalid |
+| `401` | Unauthorized — missing or invalid API token |
+| `403` | Forbidden — your token lacks permission for this resource |
+| `404` | Not Found — the requested resource does not exist |
+| `429` | Too Many Requests — you have exceeded the rate limit |
+| `500` | Internal Server Error — something went wrong on our side |
+
+## Quick Start
+
+The examples below show how to list your projects using both `curl` and the browser `fetch` API.
+
+### curl
+
+```bash title="List projects with curl"
+curl https://api.aiforge.app/v1/projects \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### fetch
+
+```js title="List projects with fetch"
+const response = await fetch("https://api.aiforge.app/v1/projects", {
+  headers: {
+    Authorization: "Bearer <your-api-token>",
+  },
+});
+
+const { projects } = await response.json();
+console.log(projects);
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "projects": [
+    {
+      "id": "proj_01hw3k9z2x",
+      "name": "Customer Support Bot",
+      "description": "Multi-agent pipeline for tier-1 support triage",
+      "createdAt": "2024-05-10T09:00:00Z"
+    },
+    {
+      "id": "proj_01hw3m7q4r",
+      "name": "Code Review Assistant",
+      "description": null,
+      "createdAt": "2024-05-12T14:23:11Z"
+    }
+  ]
+}
+```
+
+## Explore the API
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Generate tokens, set up authorization headers, and understand permission scopes.
+  </Card>
+  <Card title="Projects" icon="folder" href="/api-reference/projects">
+    Create, list, update, and delete your AI Forge projects.
+  </Card>
+  <Card title="Agents" icon="robot" href="/api-reference/agents">
+    Configure agents with roles, models, prompts, and autonomy settings.
+  </Card>
+  <Card title="Chatrooms" icon="comments" href="/api-reference/chatrooms">
+    Send messages and read conversation history across your project chatrooms.
+  </Card>
+</CardGroup>

@@ -1,0 +1,280 @@
+---
+title: "Activity API Reference — AI Forge"
+sidebarTitle: "Activity"
+description: "Query paginated activity events or subscribe to a real-time SSE stream to monitor agent actions, file operations, and run completions."
+---
+
+The Activity API provides two complementary ways to observe what is happening inside your AI Forge projects. The paginated GET endpoint gives you a historical log of events — useful for auditing, debugging, and building reports. The SSE stream endpoint pushes events to you in real time the moment they occur — ideal for live dashboards, progress UIs, or automation that needs to react to agent behaviour as it unfolds.
+
+<Tip>
+  The SSE stream is the recommended approach for building real-time dashboards and monitoring tools. Subscribe once per project and receive every event type without polling — this is more efficient and has lower latency than repeated calls to the paginated endpoint.
+</Tip>
+
+## Event object
+
+Every activity event — whether returned by the paginated endpoint or pushed over the SSE stream — shares the same base schema:
+
+<ResponseField name="id" type="string">
+  Unique identifier for the event, prefixed with `evt_`.
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The event type. See [Event types](#event-types) below for the full list.
+</ResponseField>
+
+<ResponseField name="projectId" type="string">
+  The ID of the project this event belongs to.
+</ResponseField>
+
+<ResponseField name="agentId" type="string | null">
+  The ID of the agent that triggered the event, if applicable.
+</ResponseField>
+
+<ResponseField name="payload" type="object">
+  Event-specific data. The shape varies by event type — see each type's description below.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of when the event occurred.
+</ResponseField>
+
+---
+
+## Event types
+
+| Type | Description |
+|------|-------------|
+| `agent_thinking` | The agent is processing context and forming a response, before any tool calls or output. |
+| `agent_tool_exec` | The agent has invoked a tool (for example, a file read or web search). The `payload` includes `tool`, `input`, and `output` fields. |
+| `agent_response` | The agent has produced a final text response. The `payload` includes a `content` field with the response text. |
+| `turn_finished` | A complete agent turn (thinking → tool calls → response) has finished. |
+| `run_completed` | The entire run — potentially spanning multiple agents and turns — has completed. |
+| `provider_error` | The AI provider returned an error during inference. The `payload` includes `code` and `message` fields. |
+| `file_read` | An agent read a file from the workspace. The `payload` includes the `path` of the file read. |
+| `file_write` | An agent wrote to or created a file. The `payload` includes the `path` and the number of `bytes` written. |
+| `command_started` | An agent initiated a terminal command. The `payload` includes the `command` string and `pid`. |
+| `command_output` | Streaming output chunk from a running terminal command. The `payload` includes `pid`, `stream` (`stdout` or `stderr`), and `chunk`. |
+
+---
+
+## Get activity events
+
+Retrieve a paginated list of past activity events for a project, ordered newest first.
+
+```
+GET /projects/:id/activity
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Query parameters
+
+<ParamField query="limit" type="integer">
+  Number of events to return. Defaults to `25`, maximum `200`.
+</ParamField>
+
+<ParamField query="before" type="string">
+  Return events that occurred before this event ID (cursor-based pagination). Use the `id` of the last event in the previous response to load the next page.
+</ParamField>
+
+<ParamField query="type" type="string">
+  Filter events by type. For example, `type=agent_response` returns only agent response events. Accepts a single type per request.
+</ParamField>
+
+### Example request
+
+```bash title="Get the last 10 activity events"
+curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?limit=10" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "events": [
+    {
+      "id": "evt_01hwnp3r8q",
+      "type": "agent_response",
+      "projectId": "proj_01hw3k9z2x",
+      "agentId": "agent_01hwef9q3r",
+      "payload": {
+        "content": "I found a critical security issue on line 42 of middleware.ts. The JWT secret is read from request headers instead of the environment.",
+        "chatroomId": "room_01hwkl9x4m",
+        "messageId": "msg_01hwmn2c7t"
+      },
+      "createdAt": "2024-05-14T13:35:18Z"
+    },
+    {
+      "id": "evt_01hwnp2k5m",
+      "type": "file_read",
+      "projectId": "proj_01hw3k9z2x",
+      "agentId": "agent_01hwef9q3r",
+      "payload": {
+        "path": "src/auth/middleware.ts"
+      },
+      "createdAt": "2024-05-14T13:35:09Z"
+    },
+    {
+      "id": "evt_01hwnp1j4l",
+      "type": "agent_thinking",
+      "projectId": "proj_01hw3k9z2x",
+      "agentId": "agent_01hwef9q3r",
+      "payload": {},
+      "createdAt": "2024-05-14T13:35:05Z"
+    }
+  ],
+  "hasMore": false
+}
+```
+
+### Filtering by event type
+
+```bash title="Get only agent_response events"
+curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?type=agent_response&limit=50" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Paginating through history
+
+```bash title="Load the next page using a cursor"
+curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/activity?limit=25&before=evt_01hwnp1j4l" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+---
+
+## Stream activity events (SSE)
+
+Subscribe to a real-time stream of activity events using [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events). The connection stays open and the server pushes each event as it occurs.
+
+```
+GET /projects/:id/activity/stream
+```
+
+The endpoint returns a `text/event-stream` response. Each event follows the standard SSE format:
+
+```
+event: <event_type>
+data: <json_payload>
+
+```
+
+Each event's `data` field contains the full [event object](#event-object) serialized as JSON.
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project to stream activity for.
+</ParamField>
+
+### SSE event format
+
+```
+event: agent_response
+data: {"id":"evt_01hwnp3r8q","type":"agent_response","projectId":"proj_01hw3k9z2x","agentId":"agent_01hwef9q3r","payload":{"content":"Review complete. One high-severity issue found."},"createdAt":"2024-05-14T13:35:18Z"}
+
+event: turn_finished
+data: {"id":"evt_01hwnp4s9r","type":"turn_finished","projectId":"proj_01hw3k9z2x","agentId":"agent_01hwef9q3r","payload":{},"createdAt":"2024-05-14T13:35:19Z"}
+
+```
+
+### JavaScript example using EventSource
+
+```js title="Subscribe to the activity stream"
+const PROJECT_ID = "proj_01hw3k9z2x";
+const TOKEN = process.env.AIFORGE_API_TOKEN;
+
+const streamUrl = `https://api.aiforge.app/v1/projects/${PROJECT_ID}/activity/stream`;
+
+// EventSource does not support custom headers in all browsers.
+// For server-side or Node.js environments, use a fetch-based SSE client
+// (such as `eventsource` on npm) to pass the Authorization header.
+const eventSource = new EventSource(streamUrl);
+
+// Listen for specific event types
+eventSource.addEventListener("agent_thinking", (e) => {
+  const event = JSON.parse(e.data);
+  console.log(`[${event.agentId}] Agent is thinking...`);
+});
+
+eventSource.addEventListener("agent_tool_exec", (e) => {
+  const event = JSON.parse(e.data);
+  const { tool, input } = event.payload;
+  console.log(`[${event.agentId}] Tool call: ${tool}`, input);
+});
+
+eventSource.addEventListener("agent_response", (e) => {
+  const event = JSON.parse(e.data);
+  console.log(`[${event.agentId}] Response: ${event.payload.content}`);
+});
+
+eventSource.addEventListener("file_write", (e) => {
+  const event = JSON.parse(e.data);
+  console.log(`[${event.agentId}] Wrote ${event.payload.bytes} bytes to ${event.payload.path}`);
+});
+
+eventSource.addEventListener("command_output", (e) => {
+  const event = JSON.parse(e.data);
+  process.stdout.write(event.payload.chunk);
+});
+
+eventSource.addEventListener("run_completed", (e) => {
+  console.log("Run complete. Closing stream.");
+  eventSource.close();
+});
+
+eventSource.addEventListener("provider_error", (e) => {
+  const event = JSON.parse(e.data);
+  console.error(`Provider error: ${event.payload.code} — ${event.payload.message}`);
+});
+
+eventSource.onerror = (err) => {
+  console.error("SSE connection error:", err);
+  eventSource.close();
+};
+```
+
+### Node.js example with the `eventsource` package
+
+When running server-side you need to pass the `Authorization` header, which the native browser `EventSource` API does not support. Use the [`eventsource`](https://www.npmjs.com/package/eventsource) npm package instead:
+
+```js title="SSE stream in Node.js with authorization"
+import EventSource from "eventsource";
+
+const PROJECT_ID = "proj_01hw3k9z2x";
+const TOKEN = process.env.AIFORGE_API_TOKEN;
+
+const es = new EventSource(
+  `https://api.aiforge.app/v1/projects/${PROJECT_ID}/activity/stream`,
+  {
+    headers: { Authorization: `Bearer ${TOKEN}` },
+  }
+);
+
+es.addEventListener("agent_response", (e) => {
+  const event = JSON.parse(e.data);
+  console.log("Agent:", event.payload.content);
+});
+
+es.addEventListener("run_completed", () => {
+  console.log("Done.");
+  es.close();
+});
+```
+
+<Note>
+  The SSE stream will emit a heartbeat comment (`: heartbeat`) every 30 seconds to keep the connection alive through proxies and load balancers. You can safely ignore these lines in your client code.
+</Note>
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `401` | `unauthorized` | Missing or invalid API token. |
+| `403` | `forbidden` | Your account does not have access to this project. |
+| `404` | `not_found` | No project with the given ID exists. |

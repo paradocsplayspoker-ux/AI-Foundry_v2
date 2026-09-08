@@ -1,0 +1,296 @@
+---
+title: "Files API Reference — AI Forge"
+sidebarTitle: "Files"
+description: "List, read, write, and delete files in your AI Forge project workspace programmatically using the Files REST API endpoints."
+---
+
+Every AI Forge project has an isolated file workspace that agents and users can read from and write to. The Files API gives you direct programmatic access to that workspace — you can seed a project with starter files, read agent-generated outputs, update configuration files between runs, and clean up temporary artifacts. File paths are always relative to the project root (for example, `src/main.py` or `data/input.csv`).
+
+---
+
+## List files
+
+List the files and directories at a given path within the project workspace.
+
+```
+GET /projects/:id/files
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Query parameters
+
+<ParamField query="path" type="string">
+  The directory path to list. Defaults to `"/"` (the project root). For example, `path=src` lists the contents of the `src/` directory.
+</ParamField>
+
+### Example request
+
+```bash title="List files at the project root"
+curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/files?path=/" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "path": "/",
+  "entries": [
+    {
+      "name": "README.md",
+      "type": "file",
+      "size": 1024,
+      "updatedAt": "2024-05-14T10:00:00Z"
+    },
+    {
+      "name": "src",
+      "type": "directory",
+      "size": null,
+      "updatedAt": "2024-05-14T11:30:00Z"
+    },
+    {
+      "name": "data",
+      "type": "directory",
+      "size": null,
+      "updatedAt": "2024-05-13T08:45:00Z"
+    }
+  ]
+}
+```
+
+### Example: listing a subdirectory
+
+```bash title="List files inside src/"
+curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/files?path=src" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+```json title="200 OK"
+{
+  "path": "src",
+  "entries": [
+    {
+      "name": "main.py",
+      "type": "file",
+      "size": 4096,
+      "updatedAt": "2024-05-14T11:28:00Z"
+    },
+    {
+      "name": "utils.py",
+      "type": "file",
+      "size": 2048,
+      "updatedAt": "2024-05-14T09:15:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Get file content
+
+Retrieve the raw text content of a single file.
+
+```
+GET /projects/:id/files/content
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Query parameters
+
+<ParamField query="path" type="string" required>
+  The path of the file to read, relative to the project root (for example, `src/main.py`).
+</ParamField>
+
+### Example request
+
+```bash title="Read a file"
+curl "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/files/content?path=README.md" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "path": "README.md",
+  "content": "# My Project\n\nThis project uses multi-agent AI to automate data analysis.\n\n## Getting Started\n...",
+  "size": 1024,
+  "updatedAt": "2024-05-14T10:00:00Z"
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | The `path` query parameter is missing. |
+| `404` | `not_found` | No file exists at the specified path. |
+
+---
+
+## Create or update a file
+
+Write content to a file. If the file does not yet exist, it is created (along with any intermediate directories). If it already exists, its content is fully replaced.
+
+```
+POST /projects/:id/files
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Request body
+
+<ParamField body="path" type="string" required>
+  The destination path for the file, relative to the project root (for example, `config/settings.json`).
+</ParamField>
+
+<ParamField body="content" type="string" required>
+  The full text content to write to the file. For binary files, use Base64-encoded content and set `encoding` to `"base64"`.
+</ParamField>
+
+<ParamField body="encoding" type="string">
+  Content encoding. Either `"utf8"` (default) or `"base64"` for binary files.
+</ParamField>
+
+### Example request
+
+```bash title="Write a file"
+curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/files \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "path": "config/settings.json",
+    "content": "{\"debug\": false, \"logLevel\": \"info\", \"maxRetries\": 3}"
+  }'
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "path": "config/settings.json",
+  "size": 52,
+  "updatedAt": "2024-05-14T14:00:00Z",
+  "created": false
+}
+```
+
+The `created` field is `true` when a new file was created and `false` when an existing file was updated.
+
+### Example: seeding a project with a starter file
+
+```js title="Seed a project with a README"
+await fetch(`https://api.aiforge.app/v1/projects/${PROJECT_ID}/files`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    path: "README.md",
+    content: "# New Project\n\nAutomatically provisioned by CI pipeline.\n",
+  }),
+});
+```
+
+---
+
+## Delete a file
+
+Permanently delete a file from the project workspace.
+
+```
+DELETE /projects/:id/files
+```
+
+<Warning>
+  File deletion is **irreversible**. The file and all of its content will be permanently removed from the project workspace. There is no recycle bin or undo operation. Ensure you have a backup if the content is important before calling this endpoint.
+</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Query parameters
+
+<ParamField query="path" type="string" required>
+  The path of the file to delete, relative to the project root.
+</ParamField>
+
+### Example request
+
+```bash title="Delete a file"
+curl -X DELETE "https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/files?path=data/temp_output.csv" \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "deleted": true,
+  "path": "data/temp_output.csv"
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | The `path` query parameter is missing. |
+| `404` | `not_found` | No file exists at the specified path. |
+| `400` | `is_directory` | The specified path points to a directory, not a file. |
+
+---
+
+## Complete workflow example
+
+The example below reads an existing configuration file, updates a value, and writes it back — a common pattern for automated config management.
+
+```js title="Read, modify, and write a config file"
+const BASE = "https://api.aiforge.app/v1";
+const PROJECT_ID = "proj_01hw3k9z2x";
+const TOKEN = process.env.AIFORGE_API_TOKEN;
+const FILE_PATH = "config/settings.json";
+
+// 1. Read the current config
+const readRes = await fetch(
+  `${BASE}/projects/${PROJECT_ID}/files/content?path=${FILE_PATH}`,
+  { headers: { Authorization: `Bearer ${TOKEN}` } }
+);
+const { content } = await readRes.json();
+const config = JSON.parse(content);
+
+// 2. Update a value
+config.logLevel = "debug";
+
+// 3. Write the updated config back
+await fetch(`${BASE}/projects/${PROJECT_ID}/files`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${TOKEN}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    path: FILE_PATH,
+    content: JSON.stringify(config, null, 2),
+  }),
+});
+```

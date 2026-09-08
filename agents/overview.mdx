@@ -1,0 +1,98 @@
+---
+title: "Agents: The AI Workers Behind AI Forge"
+sidebarTitle: "Overview"
+description: "Learn what agents are, how they differ from chatbots, their lifecycle, and the roles teams commonly assign to get software built faster."
+---
+
+Agents are the core workforce of AI Forge. Unlike a simple chatbot that answers questions and forgets the conversation, each agent in AI Forge is a persistent, configurable AI worker equipped with real tools, a defined set of permissions, a system prompt that shapes its expertise and personality, and an autonomy level that controls how independently it acts. Agents can read and write files, execute terminal commands, install packages, call external APIs, and communicate with other agents — all inside a shared workspace that mirrors a real development environment.
+
+## How Agents Differ from Chatbots
+
+A standard chatbot lives entirely in the conversation window. It has no memory between sessions, no access to your codebase, and no ability to take action in the world. An AI Forge agent is fundamentally different across every dimension that matters for software development:
+
+| Capability | Chatbot | AI Forge Agent |
+|---|---|---|
+| Reads your actual project files | ✗ | ✓ |
+| Writes, edits, and deletes files | ✗ | ✓ |
+| Runs shell commands and tests | ✗ | ✓ |
+| Installs packages and dependencies | ✗ | ✓ |
+| Makes external HTTP/API calls | ✗ | ✓ (with permission) |
+| Persists identity and configuration | ✗ | ✓ |
+| Collaborates with other agents | ✗ | ✓ |
+| Works autonomously toward a goal | ✗ | ✓ |
+
+Every agent has a unique ID, a name you choose, a provider and model (such as OpenAI GPT-4o or Anthropic Claude 3.5 Sonnet), a credential that authenticates it to that provider, a role label, a system prompt, a permissions matrix, and an autonomy level. You can run as many agents as your project needs — there is no artificial cap — and the same underlying model can power multiple independent agents configured differently.
+
+## The Agent Lifecycle
+
+Every agent moves through a predictable set of states from the moment you create it to the moment it finishes a task.
+
+<Steps>
+  <Step title="Created">
+    You define the agent's name, role, provider, model, system prompt, permissions, and autonomy level. The agent exists in your workspace but has not yet been added to a chatroom.
+  </Step>
+  <Step title="Configured">
+    The agent is added to one or more chatrooms and paired with an orchestration mode. Its system prompt and permissions are locked in for that context.
+  </Step>
+  <Step title="Active">
+    The agent is live in a chatroom and ready to receive messages — from you, from other agents, or from the orchestration engine.
+  </Step>
+  <Step title="Working">
+    The agent is executing a task: reading files, writing code, running tests, or communicating with peer agents. You can monitor its activity in real time and cancel or pause it at any point.
+  </Step>
+  <Step title="Idle">
+    The agent has completed its current task and is waiting for the next instruction. Results, file changes, and terminal output are available in the workspace for you to review.
+  </Step>
+</Steps>
+
+<Note>
+  You can stop, pause, or cancel any agent at any time during the **Working** state. AI Forge never locks you out of your own workspace.
+</Note>
+
+## Common Agent Roles
+
+Teams build agent rosters that mirror a real engineering organization. The role field is free-form text, so you can name and describe roles any way that fits your workflow. These are the roles most teams reach for first:
+
+<CardGroup cols={2}>
+  <Card title="Architect" icon="building-columns">
+    Designs system structure, evaluates technology choices, produces architecture decision records, and reviews proposals from other agents before implementation begins.
+  </Card>
+  <Card title="Developer" icon="code">
+    Writes and edits application code, implements features from tickets or specs, resolves merge conflicts, and runs the test suite to verify changes.
+  </Card>
+  <Card title="Security" icon="shield-halved">
+    Audits code for vulnerabilities, reviews dependency manifests for known CVEs, proposes remediations, and participates in Red Team / Blue Team orchestration modes.
+  </Card>
+  <Card title="QA Engineer" icon="magnifying-glass">
+    Writes unit, integration, and end-to-end tests, analyzes failing test output, identifies edge cases, and reports regressions to the Developer agent.
+  </Card>
+  <Card title="Designer" icon="pen-ruler">
+    Reviews UI components and design tokens, suggests accessibility improvements, and ensures visual output aligns with the project's design system.
+  </Card>
+  <Card title="Researcher" icon="book-open">
+    Investigates external libraries, reads documentation, surveys best practices, synthesizes findings into structured reports for the rest of the team.
+  </Card>
+  <Card title="DevOps" icon="server">
+    Manages CI/CD configuration, writes Dockerfiles and infrastructure-as-code, monitors build output, and handles deployment scripting.
+  </Card>
+  <Card title="Custom" icon="sliders">
+    Build any role your project needs. The system prompt is yours to define — give an agent any expertise, communication style, or constraint that fits your workflow.
+  </Card>
+</CardGroup>
+
+## Explore the Agent System
+
+<CardGroup cols={2}>
+  <Card title="Creating Agents" icon="plus" href="/agents/creating-agents">
+    Step-by-step walkthrough of creating, configuring, and deploying your first agent into a chatroom.
+  </Card>
+  <Card title="Permissions" icon="lock" href="/agents/permissions">
+    Deep dive into every permission flag, execution mode, and the server-side enforcement model that keeps your workspace safe.
+  </Card>
+  <Card title="Orchestration Modes" icon="diagram-project" href="/agents/orchestration">
+    Learn how Freeform, Debate, Research, Code Review, Red Team/Blue Team, and Autonomous Development modes shape agent collaboration.
+  </Card>
+  <Card title="Build Your First Agent Team" icon="rocket" href="/guides/first-agent-team">
+    Follow a practical guide to assembling a multi-agent team, assigning roles, and completing a real feature end to end.
+  </Card>
+</CardGroup>

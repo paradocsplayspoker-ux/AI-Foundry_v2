@@ -1,0 +1,120 @@
+---
+title: "AI Forge Settings Reference Guide"
+sidebarTitle: "Settings"
+description: "A complete reference for every setting in AI Forge, from theme and providers to security modes and orchestration defaults."
+---
+
+AI Forge gives you fine-grained control over how the workspace looks, how agents behave, and how much autonomy they are granted. All settings are persistent across sessions and apply to your account globally unless noted otherwise. This page describes every available setting and what it does.
+
+<Tip>
+Open Settings at any time by clicking your **avatar in the top-right corner** and selecting **Settings**, or by pressing **Ctrl+Shift+P** and typing **"Open Settings"**.
+</Tip>
+
+---
+
+<Accordion title="Theme">
+Control the visual appearance of the AI Forge workspace.
+
+| Setting | Options | Description |
+|---|---|---|
+| **Color Theme** | Dark, Cyberpunk, Light, High Contrast | Sets the overall color scheme for the IDE, chat panels, and activity feed. |
+| **Typography** | Default, Monospace-first, Comfortable | Adjusts font family and line spacing across the UI. Monospace-first renders all interface text in a fixed-width font, which some developers prefer for consistency with code. |
+| **Panel Density** | Compact, Default, Spacious | Controls the amount of padding and whitespace in panels and lists. |
+
+Changes to theme settings take effect immediately without a page reload.
+</Accordion>
+
+<Accordion title="Providers">
+Manage the AI provider credentials that power your agents. AI Forge supports multiple providers simultaneously, and you can have more than one credential per provider.
+
+**Adding a credential:**
+
+<Steps>
+  <Step title="Navigate to Providers">
+    Open Settings and select the **Providers** tab.
+  </Step>
+  <Step title="Select your provider">
+    Choose the provider from the dropdown (e.g. OpenAI, Anthropic, Google, Mistral).
+  </Step>
+  <Step title="Paste your API key">
+    Enter your API key in the credential field. The key is stored server-side immediately on save and is never displayed again.
+  </Step>
+  <Step title="Test the credential">
+    Click **Test** to verify the key is valid and has the expected model access before saving.
+  </Step>
+</Steps>
+
+**Removing a credential:** Click the trash icon next to any saved credential. Active agents using that credential will begin failing immediately — assign them a new credential before removing the old one.
+
+**Default model:** You can set a default model per provider. Agents that don't have an explicit model assigned will fall back to this default.
+
+<Note>
+API keys are encrypted at rest and never returned to the browser after storage. To rotate a key, add the new credential first, verify it passes the test, then remove the old one.
+</Note>
+</Accordion>
+
+<Accordion title="Agent Defaults">
+Configure the baseline behavior for newly created agents. These settings are applied as defaults when you add a new agent to a project; you can override them on a per-agent basis at any time.
+
+| Setting | Options | Description |
+|---|---|---|
+| **Default Model** | Any configured provider model | The model new agents are assigned unless you specify otherwise. |
+| **Default Autonomy Level** | Low, Medium, High | Controls how aggressively agents act without asking for confirmation. At **Low**, agents ask before nearly every action. At **High**, agents proceed through multi-step tasks without pausing. |
+
+<Tip>
+Set your default autonomy level to **Low** when you are onboarding a new type of agent for the first time. You can raise it once you have validated the agent's behavior.
+</Tip>
+</Accordion>
+
+<Accordion title="Workspace">
+Control how the AI Forge IDE environment behaves during your sessions.
+
+| Setting | Description |
+|---|---|
+| **Panel Layout Persistence** | When enabled, AI Forge remembers your panel arrangement (chat, file tree, terminal, activity feed) between sessions and restores it on next login. |
+| **Auto-Save Interval** | How frequently unsaved file changes are automatically written to disk. Options range from 10 seconds to 5 minutes, or you can disable auto-save entirely and commit changes manually. |
+| **File Tree Refresh Rate** | How often the file tree polls for changes made by agents. Lower values keep the tree more current but use slightly more bandwidth. |
+
+<Note>
+If an agent makes file changes that don't appear in your file tree, try manually refreshing the tree using the refresh icon at the top of the file panel. This is separate from the auto-refresh rate.
+</Note>
+</Accordion>
+
+<Accordion title="Terminal">
+Configure behavior for the integrated terminal available in each project.
+
+| Setting | Description |
+|---|---|
+| **Command Timeout** | Maximum time (in seconds) a command is allowed to run before AI Forge terminates it. Defaults to 30 seconds. Increase this for long-running build steps; decrease it to catch runaway processes faster. |
+| **Default Working Directory** | The directory the terminal opens in by default. Must be a path within the project root. Defaults to the project root itself (`./`). |
+| **Shell Output Limit** | Maximum number of lines captured from a command's stdout/stderr and surfaced to agents. Prevents extremely verbose commands from overflowing agent context. |
+</Accordion>
+
+<Accordion title="Orchestration">
+Set defaults for how multi-agent orchestration sessions are configured.
+
+| Setting | Options | Description |
+|---|---|---|
+| **Default Orchestration Mode** | Sequential, Parallel, Debate | The mode applied when you start a new orchestration session without explicitly choosing one. |
+| **Debate Round Count** | 1–10 | When using **Debate** mode, this controls how many rounds of back-and-forth agents complete before the orchestrator synthesizes a final answer. Higher round counts produce more refined outputs but consume more tokens and time. |
+| **Auto-assign Director** | On / Off | When enabled, AI Forge automatically designates the most capable available agent as the director for each new orchestration session. |
+</Accordion>
+
+<Accordion title="Security">
+Control execution safety across your projects. These settings apply globally and can be overridden per project.
+
+| Setting | Options | Description |
+|---|---|---|
+| **Execution Mode** | ASK_BEFORE_CHANGES, AUTO_APPLY, SAFE_MODE | Determines when agents may apply changes without explicit approval. See below for details on each mode. |
+| **Confirmation Prompts** | All Actions, Destructive Only, None | When using AUTO_APPLY, this controls whether AI Forge still surfaces confirmation dialogs for certain actions. **Destructive Only** is recommended — you'll still be prompted before any file deletion or process execution. |
+
+**Execution mode summary:**
+
+- **ASK_BEFORE_CHANGES** — Agents must request approval before modifying files or running commands.
+- **AUTO_APPLY** — Agents apply changes immediately. Actions are logged in the activity feed.
+- **SAFE_MODE** — All destructive operations are blocked project-wide, regardless of individual agent permissions.
+
+<Warning>
+Changing the execution mode takes effect immediately for all active agents in all projects. If you switch from SAFE_MODE to AUTO_APPLY while agents are mid-task, they will begin applying changes without waiting for confirmation.
+</Warning>
+</Accordion>

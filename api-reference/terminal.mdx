@@ -1,0 +1,253 @@
+---
+title: "Terminal API Reference — AI Forge"
+sidebarTitle: "Terminal"
+description: "Execute shell commands, list running processes, and stop processes in your AI Forge project environment via the Terminal REST API."
+---
+
+The Terminal API gives you programmatic access to the shell environment inside your AI Forge project. You can run arbitrary commands, inspect currently running processes, and terminate specific processes by their PID. This is useful for tasks like running tests, building packages, starting long-lived servers, or automating environment setup as part of a deployment pipeline.
+
+<Warning>
+  Terminal execution requires **both** of the following conditions to be met:
+
+  1. The project's execution mode must permit terminal access.
+  2. The calling agent or user must have the `execute_commands` permission on the project.
+
+  Requests that do not meet these conditions will receive a `403 Forbidden` response. You can configure agent permissions via the [Agents API](/api-reference/agents) and project execution mode in your project settings.
+</Warning>
+
+---
+
+## Execute a command
+
+Run a shell command inside the project environment and receive its output. Commands are executed in a sandboxed shell with access to the project file workspace.
+
+```
+POST /projects/:id/terminal/execute
+```
+
+Command execution is synchronous — the request will block until the command completes or the `timeout` is reached. For long-running processes such as servers or watchers, start them as a background process (for example, append `&` in bash) or use the [stop process](#stop-a-process) endpoint to manage their lifecycle.
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Request body
+
+<ParamField body="command" type="string" required>
+  The shell command to execute (for example, `"npm test"` or `"python scripts/ingest.py"`). Commands run in the project root directory by default.
+</ParamField>
+
+<ParamField body="timeout" type="integer">
+  Maximum time in seconds to wait for the command to complete before forcibly terminating it. Defaults to `30`. Maximum is `300` (5 minutes).
+</ParamField>
+
+### Example request
+
+```bash title="Run the test suite"
+curl -X POST https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/terminal/execute \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "npm test -- --ci --coverage",
+    "timeout": 120
+  }'
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "exitCode": 0,
+  "stdout": "PASS src/__tests__/auth.test.ts\nPASS src/__tests__/api.test.ts\n\nTest Suites: 2 passed, 2 total\nTests:       18 passed, 18 total\nCoverage:    87.4%\n",
+  "stderr": "",
+  "timedOut": false,
+  "duration": 14.3
+}
+```
+
+### Response fields
+
+<ResponseField name="exitCode" type="integer">
+  The process exit code. `0` indicates success; any non-zero value indicates a failure.
+</ResponseField>
+
+<ResponseField name="stdout" type="string">
+  Standard output captured from the command.
+</ResponseField>
+
+<ResponseField name="stderr" type="string">
+  Standard error output captured from the command.
+</ResponseField>
+
+<ResponseField name="timedOut" type="boolean">
+  `true` if the command was terminated because it exceeded the `timeout` value.
+</ResponseField>
+
+<ResponseField name="duration" type="number">
+  Wall-clock time in seconds the command took to execute.
+</ResponseField>
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | `command` is missing or `timeout` exceeds the maximum. |
+| `403` | `forbidden` | Terminal execution is not enabled for this project or you lack the `execute_commands` permission. |
+| `408` | `timeout` | The command exceeded the timeout and was forcibly terminated. |
+
+<Tip>
+  Commands that exit with a non-zero `exitCode` still return a `200 OK` HTTP response — the exit code is part of the response body. Only API-level failures (authentication errors, permission issues, etc.) return non-2xx HTTP status codes.
+</Tip>
+
+---
+
+## List running processes
+
+Retrieve a list of all currently running processes in the project environment. This is useful for checking whether a background server is still active before you attempt to restart it.
+
+```
+GET /projects/:id/terminal/processes
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+### Example request
+
+```bash title="List running processes"
+curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/terminal/processes \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "processes": [
+    {
+      "pid": 1042,
+      "command": "node server.js",
+      "startedAt": "2024-05-14T13:00:00Z",
+      "cpuPercent": 2.1,
+      "memoryMb": 64.5
+    },
+    {
+      "pid": 1087,
+      "command": "python scripts/watcher.py",
+      "startedAt": "2024-05-14T13:05:30Z",
+      "cpuPercent": 0.4,
+      "memoryMb": 38.2
+    }
+  ]
+}
+```
+
+### Response fields
+
+<ResponseField name="processes" type="array">
+  An array of running process objects.
+
+  <Expandable title="process fields">
+    <ResponseField name="pid" type="integer">
+      The process ID.
+    </ResponseField>
+    <ResponseField name="command" type="string">
+      The command string used to start the process.
+    </ResponseField>
+    <ResponseField name="startedAt" type="string">
+      ISO 8601 timestamp of when the process was started.
+    </ResponseField>
+    <ResponseField name="cpuPercent" type="number">
+      Current CPU usage as a percentage.
+    </ResponseField>
+    <ResponseField name="memoryMb" type="number">
+      Current resident memory usage in megabytes.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Stop a process
+
+Send a termination signal to a running process by its PID.
+
+```
+DELETE /projects/:id/terminal/processes/:pid
+```
+
+The process is sent `SIGTERM` first to allow graceful shutdown. If it does not exit within 5 seconds, `SIGKILL` is sent to force termination.
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The ID of the project.
+</ParamField>
+
+<ParamField path="pid" type="integer" required>
+  The PID of the process to stop. Obtain PIDs from the [list processes](#list-running-processes) endpoint.
+</ParamField>
+
+### Example request
+
+```bash title="Stop a process"
+curl -X DELETE https://api.aiforge.app/v1/projects/proj_01hw3k9z2x/terminal/processes/1042 \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "stopped": true,
+  "pid": 1042,
+  "signal": "SIGTERM"
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `404` | `not_found` | No process with the given PID is running in this project. |
+| `403` | `forbidden` | You lack the `execute_commands` permission on this project. |
+
+---
+
+## Workflow example: build, test, and clean up
+
+```js title="Run a build pipeline"
+const BASE = "https://api.aiforge.app/v1";
+const PROJECT_ID = "proj_01hw3k9z2x";
+const TOKEN = process.env.AIFORGE_API_TOKEN;
+
+async function run(command, timeout = 60) {
+  const res = await fetch(`${BASE}/projects/${PROJECT_ID}/terminal/execute`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ command, timeout }),
+  });
+  return res.json();
+}
+
+// Install dependencies
+const install = await run("npm ci", 120);
+if (install.exitCode !== 0) throw new Error(install.stderr);
+
+// Run tests
+const test = await run("npm test -- --ci", 180);
+console.log(test.stdout);
+
+// Build for production
+const build = await run("npm run build", 120);
+if (build.exitCode !== 0) throw new Error(`Build failed:\n${build.stderr}`);
+console.log("Build succeeded.");
+```

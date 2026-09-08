@@ -1,0 +1,244 @@
+---
+title: "Running an Autonomous Development Loop"
+sidebarTitle: "Autonomous Dev"
+description: "Configure agents to plan, code, test, and fix in a continuous loop with minimal intervention — and stay in control the whole time."
+---
+
+AI Forge's autonomous development loop lets your agent team take a task from requirements all the way to passing tests without you steering every step. The Architect plans, the Developer writes and fixes code, the QA Engineer validates, and the Security Engineer reviews — all inside a real IDE with a shared filesystem and terminal. You watch the activity feed, intervene whenever you like, and review every file change as a diff before it's permanent.
+
+---
+
+## How the Loop Works
+
+The autonomous loop follows a repeating cycle until the task is complete or an agent signals a blocker that requires human input.
+
+```
+Architect → creates plan
+    ↓
+Developer → reads relevant files
+    ↓
+Developer → writes / edits code
+    ↓
+Developer → runs build command
+    ↓
+Developer → reads error output  ←──────────────┐
+    ↓                                           │
+  errors? ──── yes ────→ Developer fixes code ──┘
+    ↓ no
+QA Engineer → runs test suite
+    ↓
+  failures? ── yes ────→ Developer reads report → fixes → re-runs tests
+    ↓ no
+Security Engineer → reviews changed files
+    ↓
+Team → reports result to you
+```
+
+Each arrow in that diagram is a real tool call you can see in the **Activity Feed** in real time.
+
+---
+
+## Configuring Agents for Autonomous Work
+
+<Steps>
+
+### Set Each Agent's Autonomy Level
+
+Open **Agents**, select an agent, and find the **Autonomy** slider. Choose the level that matches how much independent judgment you want that agent to exercise.
+
+| Level | What It Means |
+|---|---|
+| **Manual** | Agent waits for your explicit approval before every action. |
+| **Assisted** | Agent proposes actions and waits for a thumbs-up before executing. |
+| **Semi-Autonomous** | Agent acts freely within its permitted tools but pauses to ask before anything ambiguous or potentially destructive. |
+| **Autonomous** | Agent acts freely within its permitted tools without pausing for confirmation. |
+
+For a full autonomous loop, set the **Developer** and **QA Engineer** to **Autonomous** and the **Architect** and **Security Engineer** to **Semi-Autonomous** (they benefit from a human checkpoint before locking in a plan or escalating a security finding).
+
+### Enable AUTO_APPLY Mode
+
+In your project settings, navigate to **Execution Mode** and select **AUTO_APPLY**.
+
+| Mode | Behavior |
+|---|---|
+| **ASK_BEFORE_CHANGES** | Every file write pauses for your confirmation. |
+| **AUTO_APPLY** | Agents apply authorized file edits immediately; changes still appear in Diff Viewer for post-hoc review. |
+| **SAFE_MODE** | Destructive operations (deletes, force-overwrites, destructive shell commands) are blocked entirely. |
+
+<Warning>
+  Only enable **AUTO_APPLY** with **Autonomous** agents on sandboxed or test projects until you have enough runs to trust the team's behavior on your codebase. On production repositories, start with **ASK_BEFORE_CHANGES** and graduate to **AUTO_APPLY** after reviewing several complete cycles.
+</Warning>
+
+### Start the Loop
+
+Open the **Chatroom**, confirm your agents are active, and send a task with enough context for the Architect to produce a plan:
+
+```
+Implement a user authentication system using JWT. 
+Requirements: POST /auth/register, POST /auth/login, 
+GET /auth/me (protected). Use the existing Express setup 
+in src/index.js. Write tests for all three endpoints.
+```
+
+The agents will begin immediately. You do not need to say anything else unless you want to intervene.
+
+</Steps>
+
+---
+
+## Reading the Activity Feed
+
+While the loop runs, the **Activity Feed** (right panel) shows every tool call in real time. Each entry displays the agent name, the tool used, and the target file or command.
+
+```
+💻 Developer      FILE_READ       src/index.js
+💻 Developer      FILE_READ       src/middleware/auth.js   [not found]
+🗺  Architect      FILE_WRITE      docs/auth-spec.md
+💻 Developer      FILE_WRITE      src/routes/auth.js
+💻 Developer      TERMINAL_EXECUTE  npm run build
+💻 Developer      FILE_READ       [build output]
+💻 Developer      FILE_EDIT       src/routes/auth.js
+🧪 QA Engineer    TEST_RUN        npm test
+🧪 QA Engineer    FILE_READ       [test output]
+🔒 Security Eng.  FILE_READ       src/routes/auth.js
+🔒 Security Eng.  FILE_READ       package.json
+```
+
+Use the activity feed to gauge progress and spot the moment an agent enters an unexpected loop before it consumes unnecessary time.
+
+---
+
+## Pausing or Stopping a Running Agent
+
+You can interrupt any agent at any point — the system never locks you out.
+
+<CardGroup cols={2}>
+  <Card title="Pause an Agent" icon="circle-pause">
+    Click the agent's name in the **Active Agents** panel and select **Pause**. The agent finishes its current tool call, then waits. Resume it by clicking **Continue**.
+  </Card>
+  <Card title="Stop an Agent" icon="circle-stop">
+    Click **Stop** to halt the agent immediately after its current tool call completes. Any changes already written to disk remain; the agent will not take further action until re-started.
+  </Card>
+  <Card title="Stop All Agents" icon="octagon-xmark">
+    Click **Stop All** in the top toolbar to freeze every agent simultaneously. Use this if you notice the team heading in the wrong direction.
+  </Card>
+  <Card title="Override Mid-Task" icon="hand">
+    Type a message in the chatroom at any time. Agents read new messages between tool calls and will re-orient their behavior based on what you say.
+  </Card>
+</CardGroup>
+
+---
+
+## Reviewing Diffs After an Autonomous Run
+
+Even in **AUTO_APPLY** mode, every file change the agents made is recorded in the **Diff Viewer**. After the loop completes (or when you pause it), open the Diff Viewer to see a chronological list of every changed file.
+
+For each diff you can:
+
+- **Accept** — confirm the change as-is.
+- **Reject** — discard the change and restore the previous version.
+- **Accept Selected** — cherry-pick specific lines or hunks within a file.
+- **Restore Previous Version** — roll the entire file back to the snapshot before the autonomous run began.
+
+<Tip>
+  Before accepting diffs, cross-reference them with the Security Engineer's findings in the chatroom. If the Security Engineer flagged a file, expand that diff first.
+</Tip>
+
+---
+
+## Sample Autonomous Run: What the Chatroom Looks Like
+
+**You** — *2:14 PM*
+> Implement a user authentication system using JWT. Requirements: POST /auth/register, POST /auth/login, GET /auth/me (protected). Use the existing Express setup in src/index.js. Write tests for all three endpoints.
+
+---
+
+**🗺 Architect** — *2:14 PM*
+> Starting design. Reading project structure now.
+>
+> *(reading `src/index.js`, `package.json`)*
+>
+> **Auth System Spec** written to `docs/auth-spec.md`. Summary:
+> - `bcrypt` for password hashing, `jsonwebtoken` for token signing
+> - Tokens expire in 1 hour; refresh strategy out of scope for this task
+> - Middleware: `requireAuth` guard injected before protected routes
+>
+> Developer, proceed with this spec. QA, tests should cover valid registration, duplicate email rejection, valid login, invalid password, and the protected `/auth/me` route both with and without a token.
+
+---
+
+**💻 Developer** — *2:14 PM*
+> Spec received. Installing dependencies and building.
+>
+> *(running `npm install bcrypt jsonwebtoken`)*
+> *(writing `src/middleware/requireAuth.js`)*
+> *(writing `src/routes/auth.js`)*
+> *(running `npm run build`)*
+>
+> Build succeeded. All three endpoints registered. QA, ready for your test run.
+
+---
+
+**🧪 QA Engineer** — *2:15 PM*
+> Running test suite now.
+>
+> *(running `npm test`)*
+>
+> Results: **5 passed, 1 failed.**
+> Failure: `POST /auth/login` with correct credentials returns 500.
+> Error: `JWT_SECRET is not defined` — the environment variable is missing.
+>
+> Developer, the secret is undefined at runtime. The middleware throws before it can sign a token.
+
+---
+
+**💻 Developer** — *2:15 PM*
+> Confirmed. Reading `.env.example` for the expected variable name.
+>
+> *(reading `.env.example`)*
+>
+> Found `JWT_SECRET=changeme` in the example. Adding a fallback default for development only and documenting it.
+>
+> *(editing `src/middleware/requireAuth.js`)*
+>
+> Fix applied. QA, please re-run.
+
+---
+
+**🧪 QA Engineer** — *2:16 PM*
+> Re-running test suite.
+>
+> *(running `npm test`)*
+>
+> **6 passed, 0 failed.** ✅ All auth endpoints are green.
+
+---
+
+**🔒 Security Engineer** — *2:16 PM*
+> Reviewing changed files now.
+>
+> *(reading `src/middleware/requireAuth.js`, `src/routes/auth.js`)*
+>
+> **Findings:**
+> - **Medium** — `src/middleware/requireAuth.js` line 4: fallback `JWT_SECRET='changeme'` must never reach production. Add a startup guard that throws if `JWT_SECRET` is not set in a non-development environment.
+> - **Low** — `src/routes/auth.js` line 31: error messages on failed login reveal whether the email exists. Consider a generic "Invalid credentials" response.
+>
+> No critical findings. Developer, address the Medium finding before merging.
+
+---
+
+**🗺 Architect** — *2:16 PM*
+> Loop complete. Summary: JWT auth implemented across 2 new files, 6 tests passing, 1 Medium and 1 Low security finding logged. Human review recommended before merging to main.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Code Review Workflow" icon="magnifying-glass-code" href="/guides/code-review-workflow">
+    Inspect diffs line by line and let agents review each other's work.
+  </Card>
+  <Card title="Multi-Agent Debate" icon="comments" href="/guides/multi-agent-debate">
+    Run structured debates to resolve architecture decisions before building.
+  </Card>
+</CardGroup>

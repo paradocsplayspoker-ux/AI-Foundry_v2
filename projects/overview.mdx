@@ -1,0 +1,41 @@
+---
+title: "Projects in AI Forge"
+sidebarTitle: "Overview"
+description: "Learn what an AI Forge project is and how each one gives your team a fully isolated workspace with its own agents, files, and history."
+---
+
+A **project** in AI Forge is a fully isolated development environment where you and your AI agents collaborate to build software. Every project comes with its own persistent filesystem, its own set of configured agents, its own chatrooms, and a complete activity log that records everything agents and human directors do over time. Nothing leaks between projects — the file tree, conversation history, and agent configuration of one project are completely invisible to another.
+
+## What's inside a project
+
+Each project contains the following, all stored and namespaced independently:
+
+- **Filesystem** — a persistent directory (stored under `data/workspaces/<project_id>/`) that holds all source files, build artifacts, configs, and any other files your agents create or modify. The filesystem behaves like a real disk: agents can read, write, and execute files using the built-in terminal.
+- **Agents** — specialized AI collaborators you configure for the project (e.g., Planner, Developer, Tester). Each agent has its own role, provider credential, and conversation thread.
+- **Chatrooms** — threaded communication channels where you direct agents, ask questions, and review responses. You can create as many rooms as you like and organize them by concern (e.g., "Architecture", "Development", "QA").
+- **Activity history** — a chronological feed of every action taken in the project: file writes, agent responses, terminal commands, and more. The history persists indefinitely so you can audit what happened and when.
+
+## Persistence across sessions
+
+All project data persists across browser reloads, tab closes, and session timeouts. If an agent writes a file at 9 AM and you return at 3 PM, the file is still there. Chatroom conversations, agent configurations, and activity history are all durable — nothing is held only in memory.
+
+## Project isolation
+
+AI Forge enforces strict project-level isolation. One project cannot read or write files belonging to another, and agents in one project cannot receive messages or share context with agents in a different project. This makes it safe to run multiple unrelated projects in the same AI Forge workspace without worrying about cross-contamination.
+
+## What you can do next
+
+<CardGroup cols={2}>
+  <Card title="Managing Projects" icon="folder-open" href="/projects/managing-projects">
+    Create, rename, export, and delete projects from the AI Forge dashboard.
+  </Card>
+  <Card title="Collaboration" icon="comments" href="/projects/collaboration">
+    Work with agents across chatrooms and track team activity in the activity feed.
+  </Card>
+  <Card title="Workspace Overview" icon="desktop" href="/workspace/overview">
+    Explore the IDE, terminal, and file tree that power each project.
+  </Card>
+  <Card title="File Management" icon="file" href="/workspace/file-management">
+    Create, edit, upload, and organize files inside the project filesystem.
+  </Card>
+</CardGroup>

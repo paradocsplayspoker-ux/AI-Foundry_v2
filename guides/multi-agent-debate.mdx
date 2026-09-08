@@ -1,0 +1,229 @@
+---
+title: "Using Multi-Agent Debate Mode in AI Forge"
+sidebarTitle: "Debate Mode"
+description: "Run structured multi-round debates between agents to resolve architecture decisions, security trade-offs, and tech stack choices before writing code."
+---
+
+Some decisions shouldn't be made by a single agent. When your team faces a meaningful architecture choice — monolith versus microservices, SQL versus NoSQL, build versus buy — the Debate orchestration mode gives every relevant agent an independent voice before anyone commits to a direction. Agents form their positions privately in Round 1, challenge each other in Round 2, refine their views in Round 3, and the system produces a synthesized recommendation you can act on. The whole exchange is logged in the chatroom for full transparency.
+
+---
+
+## When to Use Debate Mode
+
+Debate mode is most valuable when:
+
+<CardGroup cols={2}>
+  <Card title="Architecture Decisions" icon="building-columns">
+    Structural choices — service boundaries, data models, communication patterns — where multiple valid approaches exist and the cost of reversing course is high.
+  </Card>
+  <Card title="Security Trade-Offs" icon="scale-balanced">
+    Decisions that pit developer convenience against security posture, like session storage strategies, third-party auth providers, or API key management.
+  </Card>
+  <Card title="Tech Stack Choices" icon="layer-group">
+    Language, framework, database, or infrastructure decisions where each option has legitimate advocates and real project-specific constraints.
+  </Card>
+  <Card title="Conflicting Requirements" icon="code-branch">
+    Situations where two agents have already expressed disagreement in the chatroom and you want to surface and resolve the tension systematically.
+  </Card>
+</CardGroup>
+
+---
+
+## How the Debate Rounds Work
+
+A full debate runs four structured rounds. Each round has a specific purpose, and agents cannot skip ahead.
+
+| Round | Name | What Happens |
+|---|---|---|
+| **Round 1** | Independent Responses | Each participating agent formulates its position in isolation. Agents do not see each other's responses until Round 1 is complete. |
+| **Round 2** | Rebuttals | All Round 1 responses are revealed simultaneously. Each agent reads the others' positions and writes a direct rebuttal or refinement. |
+| **Round 3** | Further Refinement | Agents may update their position in light of the rebuttals, concede points, or double down with new evidence. |
+| **Final** | Synthesis | AI Forge's moderator model reads all prior rounds, identifies areas of consensus and remaining disagreement, and generates a synthesized recommendation. |
+
+<Note>
+  The Round 1 isolation step is a deliberate herding-prevention mechanism. When agents can read each other before responding, the first agent to answer anchors the discussion and later agents tend to converge on it regardless of its merits — the same dynamic that degrades human brainstorming sessions. By forcing independent Round 1 responses, Debate mode produces genuinely diverse opening positions that lead to richer rebuttals and more robust final recommendations.
+</Note>
+
+---
+
+## Starting a Debate
+
+<Steps>
+
+### Select Debate Mode
+
+In the Chatroom, click the **Orchestration Mode** selector in the top toolbar (it defaults to **Freeform**). Choose **Debate** from the dropdown. The chatroom header updates to show **Debate Mode — 0 rounds completed**.
+
+### Choose Participating Agents
+
+A sidebar panel opens listing your active agents. Check the agents you want to include in this debate. For most architectural debates you'll want:
+- **Architect** — represents system design principles
+- **Developer** — represents implementation pragmatism
+- **Security Engineer** — represents risk and compliance
+
+You can include as few as two agents or as many as your roster allows. More agents produce richer debates but longer synthesis documents.
+
+### Type Your Debate Question
+
+Write your question as a clear, concrete proposition or open question. Vague questions produce vague debates. Specific questions produce actionable recommendations.
+
+```
+Should we use a monolith or microservices architecture 
+for this application? We have a team of 3 developers, 
+an 18-month runway, and expect 10,000 users in year one 
+with potential to scale to 500,000 in year three.
+```
+
+Press **Start Debate**. The rounds begin automatically.
+
+</Steps>
+
+---
+
+## Example Debate: Monolith vs. Microservices
+
+**Topic:** *"Should we use a monolith or microservices for this application?"*
+
+**Participants:** Architect, Developer, Security Engineer
+
+---
+
+### Round 1 — Independent Responses
+
+*(Agents respond privately. Responses are revealed simultaneously when all three are submitted.)*
+
+---
+
+**🗺 Architect** — *Round 1*
+> **Position: Start with a modular monolith.**
+>
+> With 3 developers and an 18-month runway, microservices introduce operational overhead that will consume a disproportionate share of engineering time. Service discovery, inter-service authentication, distributed tracing, and independent deployment pipelines are solved problems — but solving them takes weeks of platform work that produces zero user-facing value.
+>
+> A well-structured monolith with clear module boundaries (e.g., `auth/`, `billing/`, `core/`) can be extracted into services later if and when scale demands it. Martin Fowler's "MonolithFirst" pattern is validated by a decade of real-world evidence. Netflix, Amazon, and Shopify all started as monoliths.
+>
+> **My recommendation: Modular monolith now. Extract services when a specific module's scaling requirements diverge from the rest.**
+
+---
+
+**💻 Developer** — *Round 1*
+> **Position: Monolith, strongly.**
+>
+> I've shipped features in both architectures. Microservices are genuinely better at scale — but "scale" means different things. We don't have 10,000 users yet. We have 0.
+>
+> The practical cost of microservices at this stage: every new feature requires coordinating changes across multiple repositories, multiple deployment manifests, and multiple test environments. A bug that crosses a service boundary takes 3x longer to debug than one in a monolith because you're reading logs from two services and reasoning about a network call that may or may not be the culprit.
+>
+> With 3 developers, every hour of platform work is an hour not spent on product. A monolith lets us move fast now and pay the extraction cost later — when we have more engineers to share the load.
+>
+> **My recommendation: Monolith. Revisit at 100,000 users or when we need to scale a specific component independently.**
+
+---
+
+**🔒 Security Engineer** — *Round 1*
+> **Position: Monolith with a security-first caveat.**
+>
+> From a security standpoint, microservices create a significantly larger attack surface. Each service boundary is a potential mTLS misconfiguration, a leaked inter-service secret, or an overly permissive internal network policy. Securing service-to-service communication properly requires a service mesh or equivalent — that's non-trivial for a 3-person team.
+>
+> A monolith reduces the network attack surface to a single ingress point, simplifies secret management (one secret store, one deployment), and makes audit logging straightforward.
+>
+> The one caveat: if we go monolith, we need clear module-level access controls baked in from day one. A poorly structured monolith where every module can call every other module directly is a security liability in a different way — a single compromised dependency can traverse the entire codebase.
+>
+> **My recommendation: Monolith with enforced module boundaries and no cross-module direct imports. Use an internal event bus for cross-module communication to keep boundaries explicit.**
+
+---
+
+### Round 2 — Rebuttals
+
+*(All Round 1 responses are now visible to all agents.)*
+
+---
+
+**🗺 Architect** — *Round 2*
+> I'm in strong agreement with both Developer and Security Engineer on the monolith-first position. Security Engineer's point about module-level access controls is excellent and aligns precisely with the "modular monolith" pattern I described. To be concrete: we should enforce module boundaries with ESLint import rules or equivalent — no direct cross-module imports, all inter-module communication through a defined internal API.
+>
+> I'll refine my position: the internal event bus approach Security Engineer suggests is worth adopting. It mirrors the interface contracts we'd eventually use between microservices, which makes a future extraction significantly cheaper.
+
+---
+
+**💻 Developer** — *Round 2*
+> Agreed with Architect's refinement. The internal event bus is a good call — I've used it on a previous project and the discipline it imposes at the start pays dividends later. One practical note: choose a simple in-process event emitter (Node's `EventEmitter` or `mitt`) rather than introducing a message broker like RabbitMQ or Kafka at this stage. We want the architectural discipline without the infrastructure overhead.
+>
+> To Security Engineer's caveat: I'd go further. Define a `modules/` directory structure at project kick-off with explicit public interfaces (`index.js` exports only) so it's structurally impossible to accidentally couple modules — you'd have to deliberately bypass the interface.
+
+---
+
+**🔒 Security Engineer** — *Round 2*
+> Developer's `modules/` structure is exactly right. I'd add: include a linting rule that fails CI if any file outside `modules/auth/` imports directly from `modules/auth/internal/`. This makes the boundary machine-enforceable rather than a convention that erodes over time.
+>
+> No objections to the in-process event emitter for now. We should document in the ADR (Architecture Decision Record) that the event bus is the extraction seam — if we ever move to microservices, the event bus interfaces become the async API contracts.
+
+---
+
+### Round 3 — Further Refinement
+
+---
+
+**🗺 Architect** — *Round 3*
+> Consensus is strong. I'm updating my position to incorporate the specific implementation details the team has proposed. The recommendation is now: **modular monolith with in-process event bus and CI-enforced module boundaries**. I'll draft the ADR immediately after this debate concludes.
+
+---
+
+**💻 Developer** — *Round 3*
+> No further changes. I'm satisfied with the direction. One implementation note for the ADR: the first module boundaries to define are `auth`, `billing`, and `core` — the three most likely candidates for future extraction based on typical scaling patterns.
+
+---
+
+**🔒 Security Engineer** — *Round 3*
+> Agreed. Final addition: the ADR should specify that `auth` module internals (token signing keys, session data) are never accessible directly by any other module. All auth interactions go through the public `auth` module interface only. This is the single most important boundary for security.
+
+---
+
+### Final — Synthesis
+
+---
+
+**⚖️ AI Forge Moderator** — *Synthesis*
+> **Debate Summary: Monolith vs. Microservices**
+>
+> **Consensus reached: Modular Monolith**
+>
+> All three agents independently recommended a monolith-first approach and converged on a shared implementation pattern through the rebuttal rounds. There were no dissenting positions in the final round.
+>
+> **Key Decisions:**
+> 1. **Architecture:** Modular monolith. Not a "big ball of mud" — a monolith with explicit, enforced module boundaries.
+> 2. **Inter-module communication:** In-process event bus using a lightweight library (e.g., `mitt`). No direct cross-module imports.
+> 3. **Boundary enforcement:** ESLint import rules enforced in CI. Violations fail the build.
+> 4. **Initial modules:** `auth`, `billing`, `core` — chosen as the most likely future extraction candidates.
+> 5. **Security boundary:** `auth` module internals are never directly accessible by other modules. All interaction through the public interface.
+> 6. **Decision record:** An ADR will document that the event bus interfaces are the extraction seams for a future migration to microservices.
+>
+> **Trigger for revisiting:** 100,000 active users OR a specific module requiring independent scaling. Revisit quarterly.
+>
+> **Recommended next step:** Architect drafts the ADR and module directory structure. Developer implements the ESLint rules and base `modules/` scaffold. Security Engineer reviews the ADR before it's merged.
+
+---
+
+## After the Debate
+
+Once the synthesis is posted, you have several options:
+
+- **Accept the recommendation** — type a message directing the Architect to begin the plan based on the synthesis.
+- **Dig into a specific point** — ask one agent to expand on a concern that didn't get fully resolved.
+- **Run a follow-up debate** — use the synthesis as context for a more specific second debate (e.g., "Given our modular monolith decision, which database should we use?").
+- **Export the transcript** — click **Export Debate** in the toolbar to save the full exchange as a Markdown file you can commit to your repository as a decision record.
+
+<Tip>
+  Commit your debate transcripts to `docs/decisions/` alongside your ADRs. A year from now, when a new team member asks why you chose a monolith, the entire reasoning chain — not just the conclusion — will be in version control.
+</Tip>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="First Agent Team" icon="users" href="/guides/first-agent-team">
+    Set up the agents who'll participate in your debates and development loops.
+  </Card>
+  <Card title="Autonomous Development" icon="robot" href="/guides/autonomous-development">
+    Once the debate settles the architecture, let the team build it autonomously.
+  </Card>
+</CardGroup>

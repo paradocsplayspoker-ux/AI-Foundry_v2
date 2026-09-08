@@ -1,0 +1,260 @@
+---
+title: "Projects API Reference — AI Forge"
+sidebarTitle: "Projects"
+description: "Create, retrieve, update, and delete AI Forge projects programmatically. Projects are the top-level container for agents, chatrooms, and files."
+---
+
+Projects are the primary organizational unit in AI Forge. Every agent, chatroom, and file belongs to a project. The Projects API lets you manage the full lifecycle of a project — from creation through deletion — so you can automate workspace provisioning as part of your own tooling or deployment pipelines.
+
+## The project object
+
+<ResponseField name="id" type="string">
+  Unique identifier for the project, prefixed with `proj_`.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Human-readable project name.
+</ResponseField>
+
+<ResponseField name="description" type="string | null">
+  Optional description of the project's purpose.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of when the project was created.
+</ResponseField>
+
+---
+
+## List projects
+
+Retrieve all projects accessible to your API token.
+
+```
+GET /projects
+```
+
+This endpoint returns every project your account can access. The list is ordered by creation date, newest first.
+
+### Example request
+
+```bash title="List all projects"
+curl https://api.aiforge.app/v1/projects \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "projects": [
+    {
+      "id": "proj_01hw3k9z2x",
+      "name": "Customer Support Bot",
+      "description": "Multi-agent pipeline for tier-1 support triage",
+      "createdAt": "2024-05-10T09:00:00Z"
+    },
+    {
+      "id": "proj_01hw3m7q4r",
+      "name": "Code Review Assistant",
+      "description": null,
+      "createdAt": "2024-05-12T14:23:11Z"
+    }
+  ]
+}
+```
+
+---
+
+## Create a project
+
+Create a new project in your workspace.
+
+```
+POST /projects
+```
+
+### Request body
+
+<ParamField body="name" type="string" required>
+  The name of the project. Must be between 1 and 100 characters.
+</ParamField>
+
+<ParamField body="description" type="string">
+  An optional description for the project. Maximum 500 characters.
+</ParamField>
+
+### Example request
+
+```bash title="Create a project"
+curl -X POST https://api.aiforge.app/v1/projects \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Data Analysis Pipeline",
+    "description": "Automated data ingestion and reporting agents"
+  }'
+```
+
+### Example response
+
+```json title="201 Created"
+{
+  "project": {
+    "id": "proj_01hwab3p8n",
+    "name": "Data Analysis Pipeline",
+    "description": "Automated data ingestion and reporting agents",
+    "createdAt": "2024-05-14T11:05:32Z"
+  }
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | `name` is missing or exceeds the character limit. |
+| `401` | `unauthorized` | Invalid or missing API token. |
+
+---
+
+## Get a project
+
+Retrieve the details of a single project by its ID.
+
+```
+GET /projects/:id
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the project (for example, `proj_01hw3k9z2x`).
+</ParamField>
+
+### Example request
+
+```bash title="Get a project"
+curl https://api.aiforge.app/v1/projects/proj_01hw3k9z2x \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "project": {
+    "id": "proj_01hw3k9z2x",
+    "name": "Customer Support Bot",
+    "description": "Multi-agent pipeline for tier-1 support triage",
+    "createdAt": "2024-05-10T09:00:00Z"
+  }
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `404` | `not_found` | No project with the given ID exists, or your token cannot access it. |
+
+---
+
+## Update a project
+
+Update a project's name or description. Only the fields you include are changed; omitted fields remain unchanged.
+
+```
+PATCH /projects/:id
+```
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the project to update.
+</ParamField>
+
+### Request body
+
+<ParamField body="name" type="string">
+  New name for the project. Must be between 1 and 100 characters.
+</ParamField>
+
+<ParamField body="description" type="string">
+  New description. Pass `null` to clear an existing description.
+</ParamField>
+
+### Example request
+
+```bash title="Update a project"
+curl -X PATCH https://api.aiforge.app/v1/projects/proj_01hw3k9z2x \
+  -H "Authorization: Bearer <your-api-token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Customer Support Bot v2",
+    "description": "Upgraded multi-agent support pipeline with escalation handling"
+  }'
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "project": {
+    "id": "proj_01hw3k9z2x",
+    "name": "Customer Support Bot v2",
+    "description": "Upgraded multi-agent support pipeline with escalation handling",
+    "createdAt": "2024-05-10T09:00:00Z"
+  }
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `400` | `validation_error` | A provided field value is invalid (for example, `name` is empty). |
+| `404` | `not_found` | No project with the given ID exists. |
+
+---
+
+## Delete a project
+
+Permanently delete a project and all of its associated resources — agents, chatrooms, files, and activity history.
+
+```
+DELETE /projects/:id
+```
+
+<Warning>
+  Deleting a project is **irreversible**. All agents, chatrooms, files, messages, and activity logs belonging to the project will be permanently destroyed. There is no recovery path after this operation completes.
+</Warning>
+
+### Path parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the project to delete.
+</ParamField>
+
+### Example request
+
+```bash title="Delete a project"
+curl -X DELETE https://api.aiforge.app/v1/projects/proj_01hwab3p8n \
+  -H "Authorization: Bearer <your-api-token>"
+```
+
+### Example response
+
+```json title="200 OK"
+{
+  "deleted": true,
+  "id": "proj_01hwab3p8n"
+}
+```
+
+### Error cases
+
+| Status | Code | Cause |
+|--------|------|-------|
+| `403` | `forbidden` | Your account does not have permission to delete this project. |
+| `404` | `not_found` | No project with the given ID exists. |

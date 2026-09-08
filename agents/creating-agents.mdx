@@ -1,0 +1,125 @@
+---
+title: "Creating and Configuring Agents in AI Forge"
+sidebarTitle: "Creating Agents"
+description: "Follow this step-by-step guide to create, configure, and deploy a new agent — from naming it to adding it to a live chatroom."
+---
+
+Creating an agent in AI Forge takes only a few minutes, but the decisions you make during configuration — system prompt, permissions, and autonomy level — have a large impact on how useful and safe that agent will be in practice. This guide walks you through every field so you understand what each setting does and can make confident choices from the start.
+
+<Tip>
+  If you already have a well-configured agent and want a variation — for example, a second Developer agent tuned for a different language — click the **⋯** menu next to any existing agent and select **Duplicate**. All settings copy over so you only need to adjust what differs.
+</Tip>
+
+## Step-by-Step: Create a New Agent
+
+<Steps>
+  <Step title="Open the Agents Page">
+    In the left sidebar, click **Agents**. You'll see a list of all agents currently configured in your workspace. If this is your first time, the list will be empty with a prompt to create your first agent.
+  </Step>
+
+  <Step title="Click Create Agent">
+    Click the **+ Create Agent** button in the top-right corner of the Agents page. A configuration panel slides open on the right side of the screen. All settings you enter here can be changed later — nothing is permanent at creation time.
+  </Step>
+
+  <Step title="Enter a Name and Role">
+    **Name** is how the agent identifies itself in chat and in logs. Choose something clear and memorable — `Alice (Developer)`, `SecurityBot`, or `QA-Lead` all work well.
+
+    **Role** is a free-form text label that describes the agent's function. It appears in the chatroom header and helps other agents and team members understand this agent's purpose at a glance. You can write anything: `Senior Backend Developer`, `Security Auditor`, `UX Critic`, or `Database Specialist`.
+
+    <Note>
+      The Role field is informational and organizational — it does not automatically constrain what the agent can do. Actual behavioral constraints come from the **System Prompt** and **Permissions** fields below.
+    </Note>
+  </Step>
+
+  <Step title="Select a Provider and Model">
+    Choose the **Provider** (for example, OpenAI, Anthropic, or Mistral) from the dropdown, then select the specific **Model** that provider offers (for example, `gpt-4o`, `claude-3-5-sonnet-20241022`, or `mistral-large-latest`).
+
+    Next, select a **Credential** — a saved API key or OAuth token for that provider. If you haven't added credentials yet, click **Manage Credentials** to add one before continuing.
+
+    You can create multiple agents that all use the same model but with different system prompts and permissions. Each agent is fully independent regardless of shared model.
+  </Step>
+
+  <Step title="Write a System Prompt">
+    The system prompt is the most important field. It defines the agent's expertise, communication style, constraints, and personality. Write it in second person addressing the agent ("You are…") and be specific about what the agent should and should not do.
+
+    **Example: Developer Agent**
+    ```
+    You are a senior full-stack developer specializing in TypeScript, React, and Node.js.
+    Your job is to implement features, fix bugs, and write clean, well-tested code.
+    Always follow the existing code style in the repository. Before writing any code,
+    read the relevant files to understand the current structure. Write tests alongside
+    every feature you implement. If a task is ambiguous, ask a clarifying question
+    before proceeding rather than making assumptions.
+    ```
+
+    **Example: Security Agent**
+    ```
+    You are a staff application security engineer. Your job is to review code changes
+    for vulnerabilities including but not limited to: injection attacks, authentication
+    flaws, insecure deserialization, broken access control, and sensitive data exposure.
+    Reference the OWASP Top 10 when categorizing issues. For every finding, provide a
+    severity rating (Critical / High / Medium / Low), a precise description of the
+    vulnerability, and a concrete remediation with a corrected code snippet.
+    Do not approve any change that introduces a Critical or High severity issue.
+    ```
+
+    <Tip>
+      Include explicit guidance on when the agent should ask for clarification versus proceed on its own. This single instruction often has the largest effect on agent output quality.
+    </Tip>
+  </Step>
+
+  <Step title="Set Permissions">
+    The **Permissions** panel shows six toggle switches. Enable only the permissions the agent actually needs to do its job. See the [Permissions reference](/agents/permissions) for a full explanation of each flag.
+
+    | Permission | Enable for… |
+    |---|---|
+    | `read_files` | Any agent that needs to inspect code, configs, or docs |
+    | `write_files` | Agents that create or modify files (Developers, DevOps) |
+    | `delete_files` | Agents that manage or refactor file structure |
+    | `execute_commands` | Agents that run builds, tests, or scripts |
+    | `install_packages` | Agents that manage dependencies |
+    | `network_access` | Agents that call external APIs or fetch documentation |
+
+    <Warning>
+      Grant `execute_commands` and `network_access` only to agents you've carefully scoped with a clear system prompt. These permissions let an agent run arbitrary shell commands and make outbound HTTP calls. Always pair them with a tightly written system prompt and consider using **Assisted** or **Semi-Autonomous** autonomy levels until you trust the agent's behavior.
+    </Warning>
+  </Step>
+
+  <Step title="Set the Autonomy Level">
+    Choose how independently the agent acts when it has a task to complete:
+
+    <Accordion title="Manual — The agent waits for explicit direction">
+      The agent takes no action until you explicitly tell it what to do, step by step. Choose Manual for sensitive agents, learning exercises, or any situation where you want full control over every action.
+    </Accordion>
+
+    <Accordion title="Assisted — The agent proposes before acting">
+      Before taking any action (writing a file, running a command), the agent describes what it plans to do and waits for your approval. This is a good default for new agents you haven't fully characterized yet.
+    </Accordion>
+
+    <Accordion title="Semi-Autonomous — The agent executes approved sequences">
+      You approve a plan or task sequence once, and the agent carries it out step by step without interrupting you for each individual action. It pauses and asks again if it encounters something outside the approved scope.
+    </Accordion>
+
+    <Accordion title="Autonomous — The agent works to completion">
+      The agent receives a goal and works through it — reading files, writing code, running tests, fixing failures — until the task is complete, it encounters an unrecoverable failure, or you cancel it. Use this level for well-trusted agents with tightly scoped system prompts and permissions.
+    </Accordion>
+
+    <Note>
+      You can change an agent's autonomy level at any time from the Agents page or directly from the chatroom settings panel. You can also stop, pause, or cancel a running agent regardless of its autonomy level.
+    </Note>
+  </Step>
+
+  <Step title="Save and Add to a Chatroom">
+    Click **Save Agent**. The agent now appears in your Agents list with a green **Active** badge.
+
+    To put the agent to work, open or create a **Chatroom**, click **Manage Agents**, and add your new agent. Select an **Orchestration Mode** for the chatroom (start with **Freeform** if you're unsure), then send your first message. The agent will respond according to its system prompt, permissions, and autonomy level.
+  </Step>
+</Steps>
+
+## What's Next
+
+Now that your agent is created and live in a chatroom, explore how to fine-tune its behavior:
+
+- **[Permissions deep dive →](/agents/permissions)** Understand every permission flag and execution mode in detail.
+- **[Orchestration modes →](/agents/orchestration)** Learn how to structure multi-agent collaboration with Debate, Code Review, and Autonomous Development modes.
+- **[Build your first agent team →](/guides/first-agent-team)** Put multiple agents together and complete a real feature from start to finish.

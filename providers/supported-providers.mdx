@@ -1,0 +1,153 @@
+---
+title: "Supported AI Providers in AI Forge"
+sidebarTitle: "Supported Providers"
+description: "Reference list of every AI provider AI Forge supports, with model highlights and instructions for obtaining an API key."
+---
+
+AI Forge connects to a broad range of AI providers so you can choose the models that best match your project's requirements — whether you need frontier reasoning, ultra-fast inference, open-source flexibility, or a self-hosted setup that never leaves your own infrastructure. Below you'll find a summary of every supported provider, what it's known for, and how to get started.
+
+<Note>
+  AI Forge dynamically discovers the available model list from each provider where the API supports it. You don't need to hardcode model names — after you save a credential, the model selector in your agent settings will reflect what's actually available on your account.
+</Note>
+
+## Providers
+
+<Accordion title="OpenAI">
+  **What it's known for:** The most widely adopted AI API. OpenAI offers a broad lineup of models spanning general-purpose chat, advanced reasoning, and multimodal tasks.
+
+  **Key models:** GPT-4o, GPT-4, GPT-4 Turbo, o1, o1-mini, GPT-3.5 Turbo
+
+  **How to get an API key:**
+  1. Sign in or create an account at [platform.openai.com](https://platform.openai.com).
+  2. Go to **API keys** in the left sidebar.
+  3. Click **Create new secret key**, copy it immediately — OpenAI shows it only once.
+  4. Add credit to your account under **Billing** if you haven't already.
+</Accordion>
+
+<Accordion title="Anthropic (Claude)">
+  **What it's known for:** Anthropic's Claude models are designed with a strong focus on safety, instruction-following, and long-context reasoning. Claude 3.5 Sonnet is widely regarded as one of the best coding assistants available.
+
+  **Key models:** Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+
+  **How to get an API key:**
+  1. Sign in or request access at [console.anthropic.com](https://console.anthropic.com).
+  2. Navigate to **API Keys** and click **Create Key**.
+  3. Copy the key — it begins with `sk-ant-...`.
+
+  <Note>
+    Anthropic uses a tiered access system. New accounts may need to request API access before a key is granted.
+  </Note>
+</Accordion>
+
+<Accordion title="Google Gemini">
+  **What it's known for:** Google's Gemini family delivers strong performance on multimodal tasks (text, images, code) and is notable for its large context windows — Gemini 1.5 Pro supports up to 1 million tokens.
+
+  **Key models:** Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini 1.0 Pro
+
+  **How to get an API key:**
+  1. Sign in at [aistudio.google.com](https://aistudio.google.com).
+  2. Click **Get API key** and create a new key in an existing or new Google Cloud project.
+  3. Copy the key and store it securely.
+</Accordion>
+
+<Accordion title="xAI / Grok">
+  **What it's known for:** xAI's Grok models are trained with an emphasis on real-time information access and reasoning. Grok-2 is the current flagship, noted for strong coding and analysis tasks.
+
+  **Key models:** Grok-2, Grok-2 Mini
+
+  **How to get an API key:**
+  1. Sign in or apply for API access at [console.x.ai](https://console.x.ai).
+  2. Navigate to **API Keys** and generate a new key.
+  3. Copy and save it securely.
+</Accordion>
+
+<Accordion title="Groq">
+  **What it's known for:** Groq is built around purpose-built LPU (Language Processing Unit) hardware that delivers extremely fast inference speeds — often orders of magnitude faster than GPU-based APIs. Ideal for agents that need low-latency responses.
+
+  **Key models:** Llama 3.1 (8B, 70B), Llama 3 (8B, 70B), Mixtral 8x7B, Gemma 2 9B
+
+  **How to get an API key:**
+  1. Sign in or create an account at [console.groq.com](https://console.groq.com).
+  2. Go to **API Keys** and click **Create API Key**.
+  3. Copy the key before closing the dialog.
+</Accordion>
+
+<Accordion title="OpenRouter">
+  **What it's known for:** OpenRouter provides a unified API that routes to 100+ models from dozens of providers — including OpenAI, Anthropic, Meta, Mistral, and more — under a single key and billing account. It's the fastest way to experiment across the model landscape.
+
+  **Key models:** All major models from OpenAI, Anthropic, Google, Meta, Mistral, and others, accessible through one API endpoint.
+
+  **How to get an API key:**
+  1. Sign in at [openrouter.ai](https://openrouter.ai).
+  2. Navigate to **Keys** in your dashboard and click **Create Key**.
+  3. Copy the generated key.
+</Accordion>
+
+<Accordion title="Cerebras">
+  **What it's known for:** Cerebras uses its Wafer-Scale Engine chips to achieve ultra-fast LLM inference, with throughput and latency benchmarks that often surpass GPU-based competitors for supported model sizes.
+
+  **Key models:** Llama 3.1 8B, Llama 3.1 70B (and other models as Cerebras expands its catalog)
+
+  **How to get an API key:**
+  1. Sign in or request access at [cloud.cerebras.ai](https://cloud.cerebras.ai).
+  2. Navigate to **API Keys** in your account settings.
+  3. Generate and copy your key.
+</Accordion>
+
+<Accordion title="NVIDIA (NIM API)">
+  **What it's known for:** NVIDIA's NIM (NVIDIA Inference Microservices) API gives you access to optimized, enterprise-grade model inference running on NVIDIA's GPU infrastructure. Includes both proprietary and open-source models tuned for high throughput.
+
+  **Key models:** Llama 3.1 (various sizes), Mistral models, and NVIDIA-optimized variants of popular open-source models.
+
+  **How to get an API key:**
+  1. Sign in at [build.nvidia.com](https://build.nvidia.com).
+  2. Select a model and click **Get API Key** to generate a key tied to your NVIDIA developer account.
+  3. Copy and save the key.
+</Accordion>
+
+<Accordion title="Hugging Face">
+  **What it's known for:** Hugging Face hosts the largest open-source model repository in the world, with thousands of community and official models available via its Inference API. Ideal when you need specialized or fine-tuned open-source models.
+
+  **Key models:** Thousands of models available including Mistral, Llama, Falcon, BLOOM, and many fine-tuned variants.
+
+  **How to get an API key:**
+  1. Sign in or create an account at [huggingface.co](https://huggingface.co).
+  2. Go to **Settings → Access Tokens**.
+  3. Click **New token**, give it a name and an appropriate role, then copy it.
+</Accordion>
+
+<Accordion title="Perplexity">
+  **What it's known for:** Perplexity's models augment standard LLM responses with real-time web search, making them well-suited for research-heavy tasks, fact-checking, and agents that need up-to-date information beyond a training cutoff.
+
+  **Key models:** Sonar Pro (online), Sonar (online), and offline variants
+
+  **How to get an API key:**
+  1. Sign in at [perplexity.ai](https://perplexity.ai) and navigate to your account settings.
+  2. Select **API** and click **Generate** to create a new API key.
+  3. Copy the key before leaving the page.
+</Accordion>
+
+<Accordion title="LLM7.io">
+  **What it's known for:** LLM7.io provides access to a curated selection of language models through a straightforward API, offering a simple integration point for teams that want managed model access without heavy infrastructure overhead.
+
+  **How to get an API key:**
+  1. Sign in or create an account at [llm7.io](https://llm7.io).
+  2. Navigate to your dashboard and generate an API key from the **Keys** section.
+  3. Copy and save it securely.
+</Accordion>
+
+<Accordion title="Custom OpenAI-Compatible Endpoints">
+  **What it's known for:** Many self-hosted inference servers — including [Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai), [vLLM](https://github.com/vllm-project/vllm), and [LocalAI](https://localai.io) — expose an OpenAI-compatible REST API. AI Forge can connect to any of these, letting you run models entirely on your own hardware with no data leaving your network.
+
+  **Key use cases:** Local development, air-gapped environments, fine-tuned proprietary models, cost reduction by running smaller models in-house.
+
+  **How to connect:**
+  1. Select **Custom OpenAI-Compatible** from the provider dropdown in AI Forge.
+  2. Enter a **Base URL** pointing to your local or self-hosted endpoint (e.g., `http://localhost:11434/v1` for Ollama).
+  3. Enter an API key if your endpoint requires one, or enter a placeholder value (e.g., `none`) if it does not.
+  4. Click **Save** and then **Test Credential** to confirm connectivity.
+
+  <Tip>
+    If you're running a local server such as Ollama, make sure the server is reachable from the machine hosting AI Forge. For cloud-deployed instances of AI Forge, your local endpoint will need to be publicly accessible or tunneled (e.g., via ngrok).
+  </Tip>
+</Accordion>

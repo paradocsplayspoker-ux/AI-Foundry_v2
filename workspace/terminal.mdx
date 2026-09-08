@@ -1,0 +1,74 @@
+---
+title: "Integrated Terminal: Real Shell Access in AI Forge"
+sidebarTitle: "Terminal"
+description: "Run real shell commands in your project's integrated terminal, monitor agent-executed commands, and control exactly what your agents are allowed to execute."
+---
+
+The integrated terminal in AI Forge is a real shell — not a simulated one — bound to your project's root directory. You can run any command you would run in a local terminal: install packages, run tests, start servers, inspect files, or execute build pipelines. Your agents can use the same terminal, subject to the permissions you grant them.
+
+## Opening the Terminal
+
+The terminal lives in the **bottom drawer** of the workspace. Click the **Terminal** tab to open it. The shell starts in your project root directory, so you're immediately in the right place without any `cd` commands.
+
+You can open multiple terminal tabs by clicking the **+** icon in the terminal tab bar — useful if you want to run a dev server in one tab while running tests in another.
+
+## Running Commands
+
+Type any shell command and press **Enter** to execute it:
+
+```bash
+npm install
+```
+
+```bash
+npm test
+```
+
+```bash
+python -m pytest tests/ -v
+```
+
+The terminal streams **stdout** and **stderr** in real time as the command runs. When the process finishes, AI Forge displays the **exit code** inline:
+
+```
+[Process exited with code 0]
+```
+
+A non-zero exit code is shown in red so you can spot failures at a glance.
+
+## Stopping a Running Process
+
+To stop a command that is currently running — a long-running server, a hanging test, or a runaway process — press `Ctrl+C` in the terminal window. This sends a SIGINT signal to the foreground process. If the process doesn't respond, press `Ctrl+C` twice to force-kill it.
+
+## How Agents Use the Terminal
+
+When an agent has the **Execute** permission enabled, it can call the `terminal_execute` tool to run shell commands on your behalf. Agent-executed commands appear in the terminal with a colored prefix showing which agent ran them:
+
+```
+[Dev] → npm install express
+[Dev] → node server.js
+```
+
+Every agent command also appears in the **Activity Feed** with the full command string, the agent name, and the exit code, so you always have an auditable log of what was run.
+
+## Execution Modes
+
+AI Forge gives you fine-grained control over how agent terminal commands are handled via **execution modes**, configurable per-agent in the agent settings panel:
+
+| Mode | Behavior |
+|---|---|
+| **ASK_BEFORE_CHANGES** | The agent must request permission before executing any command. A confirmation dialog appears in the chatroom and the command does not run until you approve. |
+| **AUTO_APPLY** | Agent commands execute immediately without waiting for your approval. Best for fast iteration when you fully trust the agent's output. |
+| **SAFE_MODE** | The agent can only run commands from a pre-approved allowlist (e.g., `npm test`, `npm install`). Any command outside the list is blocked and the agent is notified. |
+
+<Warning>
+  Granting an agent **Execute** permission gives it the ability to run arbitrary shell commands in your project environment — including installing packages, deleting files, or making network requests. Always review your agent's system prompt and task scope before enabling Execute permission, and consider using **ASK_BEFORE_CHANGES** or **SAFE_MODE** until you've established trust in the agent's behavior.
+</Warning>
+
+## Terminal and the Agent Permission Matrix
+
+The Execute permission in an agent's permission matrix is the sole gate for terminal access. If Execute is disabled, the agent's `terminal_execute` tool calls are blocked at the API layer and the agent receives an error indicating it lacks permission. The agent can still read and write files (subject to its Read/Write permissions) but cannot run shell commands.
+
+<Info>
+  Even with Execute permission enabled, agents are scoped to your project root. They cannot navigate outside the project directory via the terminal, and path-traversal attempts in shell commands are logged and blocked.
+</Info>

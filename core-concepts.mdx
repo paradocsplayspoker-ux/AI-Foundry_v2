@@ -1,0 +1,128 @@
+---
+title: "Core Concepts: How AI Forge Works"
+sidebarTitle: "Core Concepts"
+description: "Understand the building blocks of AI Forge — Projects, Agents, Providers, Chatrooms, Orchestration Modes, Tools, and the Diff Review system."
+---
+
+AI Forge is built around a small set of composable concepts that work together to let teams of AI agents plan, build, test, and debug software alongside you. This page explains each concept clearly so you can configure your workspace with confidence and understand what's happening under the hood when your agents go to work.
+
+<Accordion title="Projects">
+A **Project** is the top-level container in AI Forge. Every project gets its own isolated filesystem, its own terminal environment, and its own roster of agents and chatrooms. Think of a project as a self-contained development workspace — similar to a repository combined with a cloud development environment.
+
+When you create a project, AI Forge provisions:
+
+- A **persistent filesystem** rooted at a fixed project directory
+- A **terminal** pre-scoped to that root directory
+- An empty **agent roster** you populate with the roles you need
+- An empty **chatroom** where you and your agents communicate
+
+Projects are fully isolated from one another. Agents in Project A cannot read files from Project B, and path-traversal attacks are blocked at the filesystem layer — agents can only access paths within their assigned project root.
+
+You can export a project at any time as a `.zip` archive containing the full filesystem snapshot.
+</Accordion>
+
+<Accordion title="Agents">
+An **Agent** is an AI worker with a defined role, a connected language model, a system prompt, and a per-agent permission matrix. Agents are the actors that do the actual work in AI Forge — reading files, writing code, running commands, and communicating with you and each other.
+
+Every agent has the following properties:
+
+| Property | Description |
+|---|---|
+| **Name** | A human-readable label (e.g., `Architect`, `Dev`, `Reviewer`) |
+| **Role** | A pre-built or custom role that pre-fills a sensible system prompt |
+| **Provider** | The AI provider that powers this agent (e.g., OpenAI, Anthropic) |
+| **Model** | The specific model to use (e.g., `gpt-4o`, `claude-opus-4-5`) |
+| **System Prompt** | The instruction set that shapes the agent's behavior and expertise |
+| **Permissions** | Read, Write, Execute, and Network toggles |
+
+Agents are not just chatbots — they have access to tools (see **Tools** below) that let them interact with the real filesystem and terminal. Their permission matrix controls exactly which tools they're allowed to invoke.
+</Accordion>
+
+<Accordion title="Providers">
+A **Provider** is an AI API that supplies the language model your agents run on. AI Forge supports a growing list of providers:
+
+- **OpenAI** — GPT-4o, GPT-4o-mini, o1, o3, and more
+- **Anthropic** — Claude 3.5 Sonnet, Claude Opus, and more
+- **Google** — Gemini 1.5 Pro, Gemini Flash, and more
+- **Groq** — Ultra-fast inference for Llama, Mixtral, and other open models
+- **xAI** — Grok models
+- **OpenRouter** — A single API key for hundreds of models from multiple providers
+
+You connect providers in **Settings → Providers**. Each provider requires an API key, which AI Forge stores server-side — your keys are never sent to the browser or exposed to agent tool calls.
+
+You can add multiple providers and assign different providers (and models) to different agents on the same team. This lets you optimize for cost, speed, and capability on a per-agent basis.
+</Accordion>
+
+<Accordion title="Chatrooms">
+A **Chatroom** is the communication channel where you and your agents exchange messages. Every project has at least one chatroom, and you can create additional rooms to segment conversations by feature, sprint, or concern.
+
+Inside a chatroom you can:
+
+- Send instructions to a specific agent using `@mentions`
+- Broadcast a message to all agents simultaneously
+- Read agent replies, status updates, and summaries
+- Trigger orchestration modes (see below) from the room controls
+
+Chatrooms maintain a full message history for the lifetime of the project, so you always have a record of what was asked and what was built.
+</Accordion>
+
+<Accordion title="Orchestration Modes">
+**Orchestration Modes** control how agents receive tasks and collaborate with each other. AI Forge ships with four built-in modes:
+
+**Freeform** — The default mode. You direct individual agents manually via `@mentions` in the chatroom. Agents operate independently and report back to you. Best for exploratory work and hands-on iteration.
+
+**Debate** — You pose a question or problem and two or more agents argue opposing positions, then converge on a conclusion. Useful for architecture decisions, technology trade-offs, and risk analysis where you want multiple perspectives before committing.
+
+**Code Review** — A dedicated author agent writes or modifies code while one or more reviewer agents critique it against a configurable rubric (style, correctness, security, test coverage). The loop runs until reviewers approve or a maximum round count is reached.
+
+**Autonomous** — You describe an end goal and AI Forge orchestrates the full plan-build-test-debug cycle automatically, routing subtasks to the most appropriate agents. You can configure the autonomous loop to pause at key checkpoints for your approval before proceeding.
+
+<Note>
+  In Autonomous mode, agents can delegate subtasks to each other without your involvement. Make sure each agent's permission matrix reflects exactly what you're comfortable with before enabling this mode.
+</Note>
+</Accordion>
+
+<Accordion title="Tools">
+**Tools** are the functions agents call to interact with the real world — the filesystem, the terminal, and the network. Each tool is gated by the agent's permission matrix, so an agent can only invoke the tools it has been explicitly granted.
+
+| Tool | Permission Required | Description |
+|---|---|---|
+| `read_file` | Read | Read the contents of a file in the project |
+| `list_directory` | Read | List files and folders at a given path |
+| `write_file` | Write | Create or overwrite a file |
+| `patch_file` | Write | Apply a targeted diff to a file |
+| `delete_file` | Write | Delete a file or directory |
+| `terminal_execute` | Execute | Run a shell command in the project terminal |
+| `http_request` | Network | Make an outbound HTTP request |
+
+When an agent calls a tool that modifies the filesystem (`write_file`, `patch_file`, `delete_file`), the change is surfaced as a diff in the **Diff Viewer** before it is applied. You can accept, reject, or edit the diff yourself.
+</Accordion>
+
+<Accordion title="Activity Feed">
+The **Activity Feed** is a real-time log of everything happening in your project. Every agent action — tool call, message sent, file read, command executed — is streamed to the feed via SSE/WebSockets as it happens.
+
+Each entry in the feed shows:
+
+- The **agent** that performed the action
+- The **tool or event type** (e.g., `file_write`, `terminal_execute`, `message`)
+- The **target** (filename, command string, or recipient agent)
+- A **timestamp** and, where applicable, the **exit code** or **result summary**
+
+The activity feed is your primary window into what your agent team is doing. You don't need to watch the editor or terminal directly — the feed gives you a compact, auditable narrative of the entire session.
+</Accordion>
+
+<Accordion title="Diff Review System">
+The **Diff Review System** ensures you remain in control of every file change an agent proposes. When an agent calls `write_file` or `patch_file`, AI Forge intercepts the change and presents it as a standard unified diff in the Diff Viewer panel.
+
+You have three options for every proposed change:
+
+- **Accept** — Apply the change to the real filesystem immediately
+- **Reject** — Discard the change; the agent is notified and can try again
+- **Edit** — Open the diff in the Monaco editor and modify it before accepting
+
+Alongside the diff, AI Forge stores a **version snapshot** of the file before any agent edits. You can roll back to any snapshot at any time from the file's version history panel.
+
+<Warning>
+  In **AUTO_APPLY** execution mode, agent file writes are applied to disk immediately without waiting for your review. Enable this mode only when you trust the agent's output and want to maximize speed.
+</Warning>
+</Accordion>

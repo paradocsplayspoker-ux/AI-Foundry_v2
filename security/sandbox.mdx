@@ -1,0 +1,66 @@
+---
+title: "How AI Forge Sandboxes Agent Actions"
+sidebarTitle: "Sandbox"
+description: "Understand how AI Forge isolates agent filesystem access, command execution, and credentials to protect your projects."
+---
+
+Every action an agent takes in AI Forge is scoped to a carefully defined sandbox. Sandboxing happens at multiple layers — the filesystem, the terminal, and the credential store — so that agents can do meaningful work while remaining unable to reach outside their designated boundaries. Understanding how these boundaries work helps you make informed decisions about what permissions to grant and how to structure your projects.
+
+## Filesystem Isolation
+
+Each project in AI Forge is rooted at a dedicated path on the server: `data/workspaces/<project_id>/`. Every file operation an agent requests — reading, writing, deleting, or listing — is resolved relative to this root before it is executed.
+
+If an agent attempts to reference a file outside the project root, the request is rejected outright. This includes:
+
+- **Path traversal sequences** such as `../../etc/passwd` or `../other_project/secret.env`
+- **Absolute paths** that point outside the project root, such as `/etc/hosts` or `/home/user/.ssh/id_rsa`
+- **Symlink escapes** that would resolve to a location outside the project directory
+
+<Note>
+All path validation happens server-side. Path traversal attempts — regardless of how they are constructed — are rejected with an error before any filesystem operation is performed. No client-side sanitization is relied upon.
+</Note>
+
+In practice, this means an agent working in your project cannot accidentally (or intentionally) read system files, other users' data, or files belonging to a different project on the same server.
+
+### Project-to-Project Isolation
+
+Projects are fully isolated from one another. An agent operating in **Project A** has no mechanism to read, write, or list files in **Project B**, even if both projects are owned by the same user or belong to the same team. The `<project_id>` in each workspace path is unique, and the server validates that every request is authorized against the correct project before resolving any path.
+
+This isolation holds across all agent actions: a rogue or compromised agent in one project cannot pivot to another project's workspace.
+
+## Command Execution Sandboxing
+
+When an agent has the `execute_commands` permission, it can run terminal commands — but only within controlled bounds.
+
+<CardGroup cols={2}>
+  <Card title="Scoped Working Directory" icon="folder">
+    Commands run with their working directory set to the project root. Agents cannot `cd` to an arbitrary system path or reference files outside the project sandbox.
+  </Card>
+  <Card title="Resource Limits" icon="gauge">
+    Each command runs under resource limits enforced by the server. Memory, CPU, and execution time are capped to prevent a single runaway process from affecting the host or other projects.
+  </Card>
+  <Card title="Runaway Process Termination" icon="ban">
+    If a command exceeds its time limit or resource budget, AI Forge terminates the process automatically and surfaces an error in the activity feed. Your other agents and sessions are unaffected.
+  </Card>
+  <Card title="Allowlist Enforcement" icon="shield-check">
+    Command execution uses a strict allowlist. Attempts to invoke disallowed binaries or shell constructs are blocked before the command reaches the operating system.
+  </Card>
+</CardGroup>
+
+<Warning>
+Even with command execution sandboxed, you should only grant `execute_commands` to agents that genuinely need it. The principle of least privilege applies — a documentation agent, for example, has no legitimate reason to run shell commands.
+</Warning>
+
+## Credential Isolation
+
+API keys and provider credentials you store in AI Forge never leave the server-side secure storage layer. When an agent makes a request to an external provider, the server injects the credential directly into the outbound API call. The credential is never:
+
+- Returned to the browser after it is stored
+- Exposed in agent messages, logs visible to other agents, or the activity feed
+- Accessible to agents via filesystem reads or environment variable enumeration within the sandbox
+
+This means that even if an agent attempted to read its own execution environment to find credentials, the sandbox would not surface them. Credentials are injected at the network layer, entirely outside the agent's observable context.
+
+<Tip>
+If you suspect a credential has been compromised, rotate it immediately in **Settings → Providers**. The old key can be removed and a new one added without restarting your project or losing any agent context.
+</Tip>

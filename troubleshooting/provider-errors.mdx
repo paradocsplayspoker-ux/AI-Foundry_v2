@@ -1,0 +1,157 @@
+---
+title: "Troubleshooting AI Provider Errors in AI Forge"
+sidebarTitle: "Provider Errors"
+description: "Diagnose and fix provider API errors in AI Forge, including 401, 403, 429, 5xx, and model-not-found failures."
+---
+
+When an AI provider returns an error, AI Forge surfaces it in two places: directly in the **chatroom** next to the agent that triggered the error, and in the **Activity Feed** with the full error message and status code. This means you can diagnose provider problems without leaving your workspace. Each error type has a distinct cause and resolution path — this guide covers them all.
+
+<Note>
+Provider failures are isolated to the individual agent that encountered them. If one agent receives a 429 or 5xx error, the other agents in the same room continue working unaffected. You do not need to restart your entire session to recover from a single provider failure.
+</Note>
+
+---
+
+<Accordion title="401 Unauthorized — Invalid API Key">
+**What it means:** The provider rejected the request because the API key is missing, expired, or incorrect.
+
+**Symptoms:** The agent shows a red error badge in the chatroom. The activity feed displays `401 Unauthorized` or `invalid_api_key` next to the agent's last action.
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Open Providers in Settings">
+    Go to **Settings → Providers** and locate the credential assigned to the failing agent.
+  </Step>
+  <Step title="Re-enter the API key">
+    Click **Edit** next to the credential and paste a fresh copy of the API key. Ensure there is no leading or trailing whitespace.
+  </Step>
+  <Step title="Test before saving">
+    Click **Test** to confirm the new key authenticates successfully, then click **Save**.
+  </Step>
+  <Step title="Verify in your provider dashboard">
+    If the key continues to fail, log in to your provider's dashboard and confirm the key is active and has not been revoked. Generate a new key if necessary.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="403 Forbidden — Insufficient Key Permissions">
+**What it means:** The API key is valid and recognized, but it does not have permission to access the specific model or feature the agent is requesting. Some providers issue keys scoped to specific models, tiers, or organizational roles.
+
+**Symptoms:** The activity feed shows `403 Forbidden` or `model_access_denied`. The key passes a basic test but fails when a specific model is invoked.
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Check model access in your provider dashboard">
+    Log in to your provider dashboard and confirm your account or API key has access to the model the agent is using. Some models (e.g. GPT-4, Claude 3 Opus) require specific tier subscriptions or explicit allowlist approval.
+  </Step>
+  <Step title="Switch the agent to an accessible model">
+    Open the agent's settings in AI Forge and assign it a model your key is confirmed to have access to. Click **Save** and retry the task.
+  </Step>
+  <Step title="Upgrade your provider plan if needed">
+    If the model requires a higher-tier subscription, upgrade your plan on the provider's side. The existing API key will gain access automatically once the upgrade is processed.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="429 Too Many Requests — Rate Limited">
+**What it means:** Your account has exceeded the provider's rate limit — either requests per minute, tokens per minute, or both. The provider is temporarily refusing new requests until the window resets.
+
+**Symptoms:** The activity feed shows `429 Too Many Requests` or `rate_limit_exceeded`. This typically happens during bursts of parallel agent activity or when running high-token-count tasks back to back.
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Wait for the rate limit window to reset">
+    Most provider rate limits reset within 60 seconds. Pause your work briefly and retry — the agent will automatically attempt the next request once the window clears.
+  </Step>
+  <Step title="Add a second credential for the same provider">
+    Go to **Settings → Providers** and add a second API key for the same provider (from a different account or project in your provider dashboard). AI Forge can distribute agent requests across multiple credentials to stay within rate limits.
+  </Step>
+  <Step title="Reduce parallel agent activity">
+    If you have many agents running simultaneously, consider staggering tasks or reducing the number of active agents to spread request volume over time.
+  </Step>
+  <Step title="Request a rate limit increase">
+    For sustained high-volume workloads, contact your provider to request a higher rate limit tier. This is usually available for paid accounts with established usage history.
+  </Step>
+</Steps>
+
+<Tip>
+Adding a second credential for the same provider is the fastest way to double your effective rate limit without changing any other settings. AI Forge load-balances across all valid credentials for a given provider.
+</Tip>
+</Accordion>
+
+<Accordion title="5xx Server Error — Provider Outage">
+**What it means:** The provider's servers returned a 500, 502, 503, or 504 error, indicating an internal failure or temporary unavailability on their end. This is not caused by your configuration.
+
+**Symptoms:** The activity feed shows `500 Internal Server Error`, `503 Service Unavailable`, or similar. Multiple agents using the same provider may fail simultaneously.
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Check the provider's status page">
+    Visit the provider's public status page to confirm whether an incident is in progress:
+    - OpenAI: [status.openai.com](https://status.openai.com)
+    - Anthropic: [status.anthropic.com](https://status.anthropic.com)
+    - Google AI: [status.cloud.google.com](https://status.cloud.google.com)
+  </Step>
+  <Step title="Wait and retry">
+    Provider outages are typically resolved within minutes to a few hours. AI Forge will not automatically retry 5xx errors — restart the agent's task once the provider's status page shows all systems operational.
+  </Step>
+  <Step title="Switch to a backup provider">
+    If your task is time-sensitive, assign the affected agents to a different provider temporarily. Because credentials are managed at the account level, switching is a one-step change in the agent's settings.
+  </Step>
+</Steps>
+
+<Note>
+Remember that provider failures are isolated. While agents using the affected provider are paused, agents assigned to other providers continue working normally. You do not need to halt your entire project during a partial provider outage.
+</Note>
+</Accordion>
+
+<Accordion title="Model Not Found — Model Name Changed or Retired">
+**What it means:** The model identifier the agent is using no longer exists at the provider. Providers periodically rename, version, or retire models — a model slug that worked last month may return a 404 or `model_not_found` error today.
+
+**Symptoms:** The activity feed shows `model_not_found`, `invalid model`, or a 404 error tied to the model name. Other agents using different models are unaffected.
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Check the provider's model documentation">
+    Visit your provider's documentation or model list to find the current name or replacement for the model you were using. Providers often publish migration guides when retiring a model.
+  </Step>
+  <Step title="Update the agent's model selection">
+    Open the agent's settings in AI Forge, click the **Model** dropdown, and select the updated or replacement model. Click **Save** — the agent will use the new model on its next request.
+  </Step>
+  <Step title="Update the default model in Settings">
+    If the retired model was set as your provider default in **Settings → Providers**, update the default there too so that new agents don't inherit the outdated model name.
+  </Step>
+</Steps>
+</Accordion>
+
+<Accordion title="Context Length Exceeded — Message History Too Long">
+**What it means:** The total number of tokens in the agent's message history — including your messages, the agent's replies, and any file content it has read — exceeds the maximum context window for the assigned model. The provider refuses to process the request.
+
+**Symptoms:** The activity feed shows `context_length_exceeded`, `maximum context length`, or a 400 error referencing token limits. The agent may have been working normally for a long session before this error appears.
+
+**Resolution steps:**
+
+<Steps>
+  <Step title="Start a new chatroom">
+    Create a fresh chatroom. A new room resets the context to zero. Paste any essential instructions or summaries as the first message to give the agent a compact starting point.
+  </Step>
+  <Step title="Ask the agent to summarize first">
+    Before starting the new room, ask the current agent: "Summarize everything you've done and the current state of the project in under 500 words." Use that summary as the opening message in the new chatroom.
+  </Step>
+  <Step title="Switch to a model with a larger context window">
+    Open the agent's settings and assign a model with a higher context limit. Many providers offer 128k or 200k token models that can sustain much longer sessions before hitting this error.
+  </Step>
+  <Step title="Avoid loading large files wholesale">
+    Instruct agents to read specific sections, functions, or line ranges from large files rather than the full file content. This is the most effective way to prevent context overflow in long coding sessions.
+  </Step>
+</Steps>
+
+<Warning>
+If you see this error recurring frequently even in short sessions, the agent may be reading entire large files into context unnecessarily. Review recent activity feed entries to identify which tool calls are consuming the most tokens and adjust the agent's instructions accordingly.
+</Warning>
+</Accordion>

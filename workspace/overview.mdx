@@ -1,0 +1,59 @@
+---
+title: "Workspace Overview: The AI Forge IDE Layout"
+sidebarTitle: "Overview"
+description: "Learn the AI Forge workspace layout — a three-panel IDE with a file explorer, Monaco editor, agent chatroom, terminal, and activity feed."
+---
+
+The AI Forge workspace is a full development environment built around the idea that you and your AI agents are working in the same room at the same time. Everything you need — files, code, a terminal, and your agent team — is visible in a single, unified interface with no context switching required.
+
+## The Three-Panel Layout
+
+The workspace is divided into three primary panels and a collapsible bottom drawer, each serving a distinct role in your development workflow.
+
+### Left Panel — File Explorer
+
+The **File Explorer** occupies the left panel and shows the complete file and folder tree for your project. It works like the explorer in a conventional IDE: click a file to open it in the editor, right-click to access the context menu for create, rename, delete, and move operations, and drag files to reorder or restructure your project layout.
+
+The file explorer also reflects agent activity in real time. When an agent writes a new file, it appears in the tree immediately. Files with uncommitted agent edits show a colored badge to indicate their pending diff status.
+
+### Center Panel — Monaco Editor
+
+The **Monaco Editor** dominates the center panel and is where code lives. It supports multi-file tabs, full syntax highlighting for all major languages, and a diff view mode that activates automatically when an agent proposes a file change. You review, accept, or reject agent edits directly inside the editor without switching to a separate tool.
+
+The editor is always in sync with the real backend filesystem — what you see is what's actually on disk (or what an agent is proposing to put on disk).
+
+### Right Panel — Agent Team Chatroom
+
+The **Chatroom** fills the right panel and is your primary interface for directing your agent team. Send instructions, read agent replies, trigger orchestration modes, and monitor inter-agent communication all from this panel. The chatroom also displays the active agent roster so you can see which agents are currently available or mid-task.
+
+### Bottom Drawer — Terminal, Task Board, Activity Feed, and Diff Viewer
+
+The collapsible bottom drawer contains four tabs:
+
+| Tab | Purpose |
+|---|---|
+| **Terminal** | A real shell bound to your project root. Run commands yourself or observe agent-executed commands in real time. |
+| **Task Board** | A structured view of pending, in-progress, and completed tasks when running in Autonomous or orchestrated modes. |
+| **Activity** | A real-time stream of every agent action — file reads and writes, terminal commands, messages, and tool calls. |
+| **Diff Viewer** | A unified diff display for every agent-proposed file change, with Accept / Reject / Edit controls. |
+
+<Note>
+  You can resize all panels by dragging the dividers between them. The bottom drawer can be pinned open or set to auto-expand when new activity arrives.
+</Note>
+
+## Explore the Workspace
+
+<CardGroup cols={2}>
+  <Card title="Monaco Editor" icon="code" href="/workspace/ide">
+    Learn how to use multi-file tabs, review agent diffs, and accept or reject file changes in the editor.
+  </Card>
+  <Card title="Integrated Terminal" icon="terminal" href="/workspace/terminal">
+    Understand the real shell environment, how to run commands, and how agent execution permissions work.
+  </Card>
+  <Card title="File Management" icon="folder-open" href="/workspace/file-management">
+    Create, rename, move, and delete files; search across your project; and export your workspace as a zip.
+  </Card>
+  <Card title="Agents Overview" icon="users" href="/agents/overview">
+    Configure your agent team — roles, models, system prompts, and per-agent permission matrices.
+  </Card>
+</CardGroup>

@@ -1,20 +1,68 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: "AI Forge: Multi-Agent AI Development Workspace"
+sidebarTitle: "Home"
+description: "AI Forge gives you a team of specialized AI agents that collaboratively plan, build, test, and debug software inside a real IDE with a shared filesystem and terminal."
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+AI Forge is a collaborative development environment where you direct a team of AI agents — each with its own role, model, and permissions — to work together on real software projects. Agents read and write actual files, run commands in a live terminal, review each other's code, and stream every action back to you in real time.
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Create your first project and agent team in under five minutes.
+  </Card>
+  <Card title="Core Concepts" icon="book-open" href="/core-concepts">
+    Understand agents, projects, providers, and orchestration modes.
+  </Card>
+  <Card title="Workspace Guide" icon="desktop" href="/workspace/overview">
+    Explore the IDE, terminal, file explorer, and activity panel.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Integrate with AI Forge programmatically using the REST API.
+  </Card>
+</CardGroup>
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+## How AI Forge Works
+
+AI Forge connects three layers into one seamless loop: **your intent**, **your agent team**, and **your project**.
+
+<Steps>
+  <Step title="Create a Project">
+    Set up a persistent project workspace. Every project has its own isolated filesystem, file history, and agent team.
+  </Step>
+  <Step title="Add AI Agents">
+    Build a team by creating agents with distinct roles (Architect, Developer, Security, QA, etc.), assigning each a provider and model, and configuring their permissions.
+  </Step>
+  <Step title="Give Your Team an Objective">
+    Type an instruction in the chatroom. Agents collaborate, read and write real project files, execute terminal commands, and stream every action to your activity feed.
+  </Step>
+  <Step title="Review & Iterate">
+    Inspect proposed file changes as unified diffs, accept or reject them, and guide the team toward completion — all without leaving AI Forge.
+  </Step>
+</Steps>
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="Real IDE" icon="file-code">
+    Monaco editor with syntax highlighting, multi-file tabs, and live sync with the agent filesystem.
+  </Card>
+  <Card title="Live Terminal" icon="terminal">
+    A genuine shell bound to your project root. Agents and humans run the same commands.
+  </Card>
+  <Card title="Multi-Provider Support" icon="plug">
+    Connect OpenAI, Anthropic, Gemini, Groq, xAI, OpenRouter, and more — mix models across agents.
+  </Card>
+  <Card title="Agent Permissions" icon="shield-halved">
+    Control exactly what each agent can read, write, delete, execute, and access on the network.
+  </Card>
+  <Card title="Real-Time Activity" icon="bolt">
+    Every tool call, file change, and terminal command streams live to your activity feed.
+  </Card>
+  <Card title="Diff Review" icon="code-compare">
+    AI-proposed edits surface as reviewable diffs. Accept, reject, or restore any version.
+  </Card>
+</CardGroup>
+
+<Note>
+  AI Forge enforces a strict **no-mock** guarantee. Every agent response comes from a real provider, every file operation touches the real filesystem, and every terminal command runs in a real shell process.
+</Note>

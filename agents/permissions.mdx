@@ -1,0 +1,115 @@
+---
+title: "Agent Permissions: Control What Agents Can Do"
+sidebarTitle: "Permissions"
+description: "Understand every agent permission flag, project-level execution modes, and how AI Forge enforces boundaries server-side to keep your workspace safe."
+---
+
+Every agent in AI Forge operates within a permission boundary that you define. Permissions are not advisory hints — they are hard gates enforced on the server before any tool call is executed. No matter what an agent's system prompt instructs it to do, it cannot take an action that its permission matrix forbids. This page explains each permission flag, the project-level execution modes that add another layer of control, and the principles you should follow when deciding what to grant.
+
+<Warning>
+  **All permission checks are enforced server-side.** An agent cannot bypass, spoof, or escalate its own permissions through prompt injection, jailbreaking, or any other technique. If a permission is off, the corresponding tool call is rejected at the API layer before it reaches the agent's execution environment.
+</Warning>
+
+## The Six Permission Flags
+
+Each permission is an independent ON/OFF toggle. You set them when creating an agent and can change them at any time from the Agents page. Changes take effect immediately on the next tool call the agent makes.
+
+<Accordion title="read_files — Read project files and directories">
+  **What it allows:** The agent can use the `FILE_READ` and `DIRECTORY_LIST` tools to read any file or directory within the project workspace.
+
+  **What it does NOT allow:** Reading files outside the project workspace boundary, accessing other users' workspaces, or reading credentials stored in AI Forge's secret vault.
+
+  **Grant to:** Almost every agent. Agents that cannot read files are limited to reasoning about information you paste directly into the chat. Architects, Developers, Security reviewers, QA engineers, and DevOps agents all need this permission to function meaningfully.
+
+  **Deny for:** A pure brainstorming or planning agent that you deliberately want to keep context-free, or a guest agent with no access to proprietary source code.
+</Accordion>
+
+<Accordion title="write_files — Create and modify files">
+  **What it allows:** The agent can use `FILE_WRITE` and `FILE_EDIT` tools to create new files and overwrite or patch existing ones anywhere in the project workspace.
+
+  **What it does NOT allow:** Writing outside the project workspace boundary. `write_files` does not imply `delete_files` — an agent with write but not delete can overwrite file contents but cannot remove files from the filesystem.
+
+  **Grant to:** Developer agents, DevOps agents writing infrastructure-as-code, and any agent whose job includes generating or modifying artifacts. You can combine this with the `AUTO_APPLY` or `ASK_BEFORE_CHANGES` execution mode (see below) to control how aggressively writes are applied.
+
+  **Deny for:** Read-only reviewer agents (Security auditors, Code reviewers, Architects producing reports) that should inspect code but never modify it.
+</Accordion>
+
+<Accordion title="delete_files — Remove files from the workspace">
+  **What it allows:** The agent can use the `FILE_DELETE` tool to permanently remove files from the project workspace.
+
+  **What it does NOT allow:** Deleting files outside the workspace, or bypassing version control history if your project is Git-tracked.
+
+  **Grant to:** Agents responsible for refactoring, cleanup tasks, or scaffolding teardown. Even then, pair this with `ASK_BEFORE_CHANGES` or **Assisted** autonomy level so the agent confirms before any deletion.
+
+  **Deny for:** The vast majority of agents. File deletion is the highest-risk write operation. A mistaken or hallucinated delete can be costly even with version control. Grant this permission deliberately and sparingly.
+
+  <Tip>
+    If your project is connected to a Git repository, deleted files remain recoverable via version history. Enable Git integration in **Project Settings → Version Control** before granting `delete_files` to any agent.
+  </Tip>
+</Accordion>
+
+<Accordion title="execute_commands — Run shell commands in the terminal">
+  **What it allows:** The agent can use the `TERMINAL_EXECUTE` and `TEST_RUN` tools to run arbitrary shell commands, build scripts, test runners, linters, and any other executable within the project's terminal environment.
+
+  **What it does NOT allow:** Escalating to root/sudo (the agent runs as an unprivileged user), accessing other workspaces, or persisting changes outside the terminal session's working directory unless combined with `write_files`.
+
+  **Grant to:** Developer agents that run builds and tests, DevOps agents that execute deployment scripts, and QA agents that invoke test suites. Always write a tightly scoped system prompt when granting this permission — instruct the agent explicitly which commands are in scope.
+
+  **Deny for:** Any agent that only needs to read or write files without executing them. Security reviewer agents, Architect agents, and documentation agents rarely need shell access.
+
+  <Warning>
+    `execute_commands` is the most powerful permission in the matrix. An agent with this permission can run any shell command your user account can run inside the workspace container. Grant it only to agents you have thoroughly tested, and always start with **Assisted** or **Semi-Autonomous** autonomy until you've validated the agent's command patterns.
+  </Warning>
+</Accordion>
+
+<Accordion title="install_packages — Run package manager installs">
+  **What it allows:** The agent can invoke package managers such as `npm install`, `pip install`, `cargo add`, `go get`, and similar commands to add or update dependencies in the project.
+
+  **What it does NOT allow:** Installing system-level packages via `apt`, `brew`, or equivalent OS package managers (those require `execute_commands` and elevated privileges that the workspace container restricts). `install_packages` is scoped to language-level package managers only.
+
+  **Grant to:** Developer agents working on dependency management, DevOps agents setting up environments, and scaffolding agents bootstrapping new projects.
+
+  **Deny for:** Any agent that should work only with the existing dependency tree. Granting this permission to a debugging agent, for example, risks introducing unreviewed packages into your project.
+
+  <Note>
+    Package installation changes are reflected in your workspace's lock files and manifest files (e.g., `package-lock.json`, `Pipfile.lock`). Review these files in version control the same way you would review any other code change.
+  </Note>
+</Accordion>
+
+<Accordion title="network_access — Make external HTTP/API calls">
+  **What it allows:** The agent can make outbound HTTP and HTTPS requests to external URLs — fetching documentation, calling third-party APIs, querying public datasets, or retrieving remote resources.
+
+  **What it does NOT allow:** Accessing internal network resources outside the workspace (private VPCs, internal databases), bypassing your organization's network policies, or exfiltrating workspace files without also having `read_files` permission.
+
+  **Grant to:** Researcher agents that query public APIs and documentation, Developer agents that need to call external services during testing, and DevOps agents that interact with cloud provider APIs.
+
+  **Deny for:** Most agents by default. Network access introduces data exfiltration risk if an agent is compromised via prompt injection in external content it retrieves. Grant it only when the agent's workflow genuinely requires external calls.
+
+  <Warning>
+    Agents with `network_access` can retrieve content from the internet and incorporate it into their reasoning. If that content contains adversarial prompt injections (prompt injection via web pages or APIs is a known attack vector), the agent may be influenced by it. Combine `network_access` with a tightly scoped system prompt that instructs the agent to treat all retrieved content as untrusted data.
+  </Warning>
+</Accordion>
+
+## Project-Level Execution Modes
+
+In addition to per-agent permission flags, each project has an **Execution Mode** that controls how eagerly agents apply changes to the workspace. Set this in **Project Settings → Execution**.
+
+| Mode | Behavior |
+|---|---|
+| **ASK_BEFORE_CHANGES** | Every file write, file delete, command execution, or package install requires explicit user confirmation before it is applied. Agents propose the action and wait. |
+| **AUTO_APPLY** | Agents apply permitted actions immediately without prompting for confirmation. Best for trusted, well-scoped agents running focused tasks where speed matters. |
+| **SAFE_MODE** | All write operations (`write_files`, `delete_files`, `install_packages`) are disabled project-wide regardless of individual agent permissions. Agents can only read and reason. Useful for audits, demos, and onboarding sessions. |
+
+<Note>
+  The project-level Execution Mode stacks on top of individual agent permissions. If an agent has `write_files` ON but the project is in `SAFE_MODE`, the write is still blocked. The most restrictive rule always wins.
+</Note>
+
+## Permission Design Principles
+
+Follow these guidelines when configuring agent permissions:
+
+1. **Grant the minimum necessary.** Start with only `read_files` enabled. Add permissions one at a time as the agent's workflow requires them.
+2. **Match autonomy level to permission scope.** An agent with `execute_commands` should start on **Assisted** or **Semi-Autonomous** so you can validate its command patterns before trusting it at **Autonomous** level.
+3. **Use `ASK_BEFORE_CHANGES` during onboarding.** Even if an agent ultimately runs in `AUTO_APPLY`, spend the first few sessions in `ASK_BEFORE_CHANGES` to observe how the agent behaves.
+4. **Write your system prompt before expanding permissions.** The system prompt is your primary behavioral constraint. Tighten it before granting powerful permissions.
+5. **Audit regularly.** Review each agent's permission matrix whenever you update its system prompt, change its autonomy level, or onboard it to a new project.

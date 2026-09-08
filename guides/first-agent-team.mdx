@@ -1,0 +1,242 @@
+---
+title: "Build Your First Agent Team in AI Forge"
+sidebarTitle: "First Agent Team"
+description: "Create a four-agent team of Architect, Developer, Security Engineer, and QA Engineer to plan, build, secure, and test your software."
+---
+
+Every project in AI Forge runs on collaboration between specialized agents. Rather than a single generalist assistant, you assemble a team where each agent owns a distinct role, has a tailored system prompt, and operates with exactly the permissions it needs — nothing more. This guide walks you through creating your first four-agent team and sending them their first real task.
+
+## What You'll Build
+
+By the end of this guide you'll have a team of four agents ready to tackle a full development cycle:
+
+<CardGroup cols={2}>
+  <Card title="Architect" icon="drafting-compass">
+    Plans the system design, defines interfaces, and produces technical specs before any code is written.
+  </Card>
+  <Card title="Developer" icon="code">
+    Implements features, runs builds, reads compiler output, and iterates until the code works.
+  </Card>
+  <Card title="Security Engineer" icon="shield-halved">
+    Reviews code for vulnerabilities, checks dependency manifests, and flags risky patterns.
+  </Card>
+  <Card title="QA Engineer" icon="flask">
+    Writes and executes tests, reads test output, and reports pass/fail status back to the team.
+  </Card>
+</CardGroup>
+
+---
+
+## Step-by-Step Setup
+
+<Steps>
+
+### Open the Agent Roster
+
+From your project dashboard, click **Agents** in the left sidebar, then click **+ New Agent**. You'll do this four times — once for each role.
+
+### Create the Architect
+
+Fill in the agent form with the following details.
+
+**Role name:** `Architect`
+
+**System prompt:**
+```
+You are a senior software architect. Your job is to analyze requirements,
+design system components, define API contracts, and produce clear technical
+specifications before any code is written. Think in terms of modules,
+data flow, and failure modes. Write your plans as structured Markdown
+documents that the Developer agent can act on directly. Never write
+implementation code yourself — your output is specifications only.
+```
+
+**Permissions:**
+| Permission | Enabled |
+|---|---|
+| `read_files` | ✅ |
+| `write_files` | ❌ |
+| `execute_commands` | ❌ |
+| `delete_files` | ❌ |
+| `run_tests` | ❌ |
+
+<Tip>
+  Restricting the Architect to read-only access enforces the separation of concerns — it can inspect the codebase for context but can never accidentally overwrite a file mid-design.
+</Tip>
+
+### Create the Developer
+
+**Role name:** `Developer`
+
+**System prompt:**
+```
+You are a senior full-stack developer. You receive technical specifications
+from the Architect and turn them into working code. You read existing files
+before editing them, write clean and well-commented implementations, run
+build commands to verify your work, and read compiler or runtime errors to
+self-correct. Always confirm the Architect's spec before deviating from it.
+Report blockers to the team rather than guessing at requirements.
+```
+
+**Permissions:**
+| Permission | Enabled |
+|---|---|
+| `read_files` | ✅ |
+| `write_files` | ✅ |
+| `execute_commands` | ✅ |
+| `delete_files` | ❌ |
+| `run_tests` | ✅ |
+
+<Note>
+  `delete_files` is left off intentionally. If the Developer needs to remove a file, it can flag it for your review rather than deleting it autonomously.
+</Note>
+
+### Create the Security Engineer
+
+**Role name:** `Security Engineer`
+
+**System prompt:**
+```
+You are an application security engineer. You review source code, dependency
+manifests, configuration files, and environment variable usage for security
+vulnerabilities. Look for injection risks, insecure defaults, hardcoded
+secrets, overly permissive CORS or auth settings, and outdated packages with
+known CVEs. Report every finding with: file path, line number, severity
+(Critical / High / Medium / Low), a plain-English explanation, and a
+concrete remediation step. Do not modify files — your role is analysis only.
+```
+
+**Permissions:**
+| Permission | Enabled |
+|---|---|
+| `read_files` | ✅ |
+| `write_files` | ❌ |
+| `execute_commands` | ❌ |
+| `delete_files` | ❌ |
+| `run_tests` | ❌ |
+
+<Warning>
+  Never grant the Security Engineer write or execute permissions. A read-only security agent cannot be leveraged to exfiltrate data or modify files if its behavior ever falls outside expectations.
+</Warning>
+
+### Create the QA Engineer
+
+**Role name:** `QA Engineer`
+
+**System prompt:**
+```
+You are a quality assurance engineer. You write unit tests, integration tests,
+and end-to-end tests for features delivered by the Developer. You run the
+project's test suite, read the output carefully, identify failing tests,
+and report results to the team with clear pass/fail summaries. When tests
+fail, describe the failure in enough detail for the Developer to reproduce
+and fix it without re-running the suite themselves.
+```
+
+**Permissions:**
+| Permission | Enabled |
+|---|---|
+| `read_files` | ✅ |
+| `write_files` | ✅ |
+| `execute_commands` | ✅ |
+| `delete_files` | ❌ |
+| `run_tests` | ✅ |
+
+### Confirm Your Roster
+
+Head back to the **Agents** panel. You should now see all four agents listed with their roles and permission badges. Click **Save Roster** to lock in the configuration.
+
+### Open the Chatroom and Send Your First Instruction
+
+Click **Chatroom** in the sidebar. Make sure all four agents are listed in the **Active Agents** section on the right. Then type your first message:
+
+```
+Design and build a simple REST API for a to-do list application.
+```
+
+Press **Enter**. AI Forge routes your message to all active agents and the collaboration begins.
+
+</Steps>
+
+---
+
+## What Happens Next: A Sample Exchange
+
+Here's what the chatroom might look like in the first few minutes after you send that instruction.
+
+---
+
+**You** — *10:02 AM*
+> Design and build a simple REST API for a to-do list application.
+
+---
+
+**🗺 Architect** — *10:02 AM*
+> Understood. I'll produce a technical spec before any code is written. Give me a moment to review the project structure.
+>
+> *(reading `./README.md`, `./package.json`)*
+>
+> **Spec: To-Do List REST API**
+>
+> **Stack:** Node.js + Express, in-memory store (upgradeable to PostgreSQL later).
+>
+> **Endpoints:**
+> - `GET /todos` — list all items
+> - `POST /todos` — create item (`{ title: string, done: boolean }`)
+> - `PATCH /todos/:id` — update item
+> - `DELETE /todos/:id` — mark deleted (soft delete)
+>
+> **Conventions:** JSON request/response, snake_case fields, HTTP status codes per RFC 9110. Developer, please implement against this spec. QA, please prepare tests once the first endpoint is live.
+
+---
+
+**💻 Developer** — *10:03 AM*
+> Spec received. Starting implementation. Reading existing source files first.
+>
+> *(reading `./src/index.js`)*
+>
+> File is empty — starting fresh. Writing `src/routes/todos.js` and `src/index.js` now.
+>
+> *(writing `src/routes/todos.js`)*
+> *(writing `src/index.js`)*
+>
+> Running build check: `node --check src/index.js`
+>
+> ✅ Syntax OK. Server ready to start. Architect, I've followed your spec exactly. `GET /todos` and `POST /todos` are live. `PATCH` and `DELETE` in progress.
+
+---
+
+**🔒 Security Engineer** — *10:03 AM*
+> I'll begin a preliminary review of the spec and any files written so far.
+>
+> *(reading `src/routes/todos.js`)*
+>
+> Early observation: the spec mentions no authentication. For a production service this would be a **High** severity gap. For now I'll flag it as a finding and continue monitoring as more code lands. Developer, please note this before adding any persistence layer.
+
+---
+
+**🧪 QA Engineer** — *10:03 AM*
+> Spec noted. Writing test scaffolding for `GET /todos` now so it's ready the moment the server can start.
+>
+> *(writing `tests/todos.test.js`)*
+>
+> Tests are staged. I'll run them once Developer confirms the server boots cleanly.
+
+---
+
+<Tip>
+  You don't need to direct every agent individually. Once the team has a shared goal, agents coordinate with each other inside the chatroom automatically. Step in when you want to redirect, approve a decision, or override an agent's plan.
+</Tip>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Autonomous Development" icon="robot" href="/guides/autonomous-development">
+    Let the team work end-to-end without step-by-step prompting.
+  </Card>
+  <Card title="Code Review Workflow" icon="magnifying-glass-code" href="/guides/code-review-workflow">
+    Review agent-proposed changes as diffs before they land.
+  </Card>
+</CardGroup>

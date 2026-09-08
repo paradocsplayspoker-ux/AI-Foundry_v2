@@ -1,0 +1,75 @@
+---
+title: "Collaborating with Agents in AI Forge"
+sidebarTitle: "Collaboration"
+description: "Use chatrooms to direct agents by concern, mention specific agents with @, and track every action in the project activity feed."
+---
+
+AI Forge is designed around real collaboration between human directors and teams of specialized AI agents. Within each project you get a flexible chatroom system — create as many rooms as you need, organize them by concern, and control exactly which agents are listening in each one. The activity feed gives you a running record of everything that has happened, so you always know what each agent did and when.
+
+<Tip>
+  Create a dedicated chatroom for each major concern — for example, **Architecture**, **Development**, and **QA**. Keeping conversations separated prevents agents from acting on instructions that aren't meant for them and makes it far easier to scroll back and review decisions in context.
+</Tip>
+
+## Chatrooms
+
+A chatroom is a persistent, threaded conversation channel inside your project. You can create as many rooms as your workflow demands, and each room maintains its own independent conversation history.
+
+### Creating a chatroom
+
+Click the **+** icon next to the **Rooms** section in the left sidebar. Give the room a name that reflects its purpose (e.g., `architecture`, `backend-dev`, `code-review`) and click **Create**.
+
+### Adding and removing agents from a room
+
+Every room has an **Agents** panel in its settings. Open it by clicking the gear icon on the room header:
+
+- **Add an agent** — select the agent from the list of agents configured for this project. From this point on, the agent receives every message sent to this room.
+- **Remove an agent** — click the × next to an agent's name. The agent will no longer receive messages in this room, but its history of past messages in the room is preserved.
+
+You can mix and match freely — an agent can be in multiple rooms simultaneously, or restricted to just one.
+
+### Sending a message to all agents in a room
+
+Type your message in the input box at the bottom of the room and press **Enter** (or click **Send**). Every agent currently assigned to that room will receive your message and can respond.
+
+### Mentioning a specific agent
+
+To direct a message at one particular agent without excluding others, use the `@` mention syntax:
+
+```
+@Developer please refactor the authentication module to use JWTs.
+```
+
+The mentioned agent is prompted to respond first, but other agents in the room can still see the message and react if relevant to their role. Use `@` mentions when you need a specific agent to take ownership of a task, rather than opening it up to the whole room.
+
+## Reading the activity feed
+
+The **Activity** tab in the left sidebar shows a chronological log of everything that has happened in your project across all rooms and agent sessions. Each entry records:
+
+| Field | Description |
+|-------|-------------|
+| **Timestamp** | When the action occurred |
+| **Agent / User** | Who performed the action |
+| **Action type** | Message sent, file written, terminal command run, etc. |
+| **Detail** | A summary of what was done (e.g., the filename written or the command executed) |
+
+Use the activity feed to:
+
+- **Audit work** — confirm that an agent followed through on an instruction
+- **Debug unexpected changes** — trace a file modification back to the agent message that triggered it
+- **Catch up after time away** — scan recent activity to understand what your agents accomplished while you were offline
+
+The feed is persistent and grows continuously as long as your project is active. It is never cleared automatically — scroll back as far as you need.
+
+## Tips for effective collaboration
+
+<Accordion title="Structure your agent team by role">
+  Assign each agent a single, well-defined responsibility — for example, one agent owns planning and architecture, another owns implementation, and a third owns testing. This mirrors how effective human teams work and makes it easier to direct conversations to the right room and the right agent.
+</Accordion>
+
+<Accordion title="Use rooms to gate information">
+  Agents in a room see only the messages sent to that room. If you're discussing implementation details in `backend-dev`, your QA agent in the `qa-review` room won't be distracted by unrelated context. Share a summary when you're ready to hand off work, rather than letting every agent hear every message.
+</Accordion>
+
+<Accordion title="Combine @ mentions with clear task descriptions">
+  When assigning work to a specific agent, include enough context in the message itself so the agent doesn't need to ask clarifying questions. A message like `@Developer implement the POST /orders endpoint described in the architecture doc at /docs/api-design.md` gives the agent everything it needs to act immediately.
+</Accordion>

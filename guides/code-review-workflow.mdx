@@ -1,0 +1,211 @@
+---
+title: "Code Review Workflow with AI Forge"
+sidebarTitle: "Code Review"
+description: "Walk through diff-based code review: agents propose changes, you inspect diffs, a reviewer agent gives inline feedback, and the developer applies fixes."
+---
+
+Code review in AI Forge combines the speed of automated analysis with genuine human judgment. When the Developer agent writes or edits a file, the change surfaces immediately in the **Diff Viewer** — a side-by-side diff panel where you can read every modified line before it's accepted. A dedicated reviewer agent (or a human team member) can inspect the same files, leave structured feedback in the chatroom, and the Developer applies corrections in a second pass. You accept the final diff only when you're satisfied.
+
+---
+
+## The Review Cycle at a Glance
+
+<Steps>
+
+### Developer Agent Makes Changes
+
+After completing a task, the Developer has written or edited one or more files. These changes are staged in the Diff Viewer regardless of whether your project is in **ASK_BEFORE_CHANGES** or **AUTO_APPLY** mode. No change is permanent until you accept it.
+
+### Diff Appears in the Diff Viewer Panel
+
+Open the **Diff Viewer** from the right-hand panel or the toolbar shortcut. Each changed file appears as an entry in the list. Click any file to open the full diff.
+
+The diff view shows:
+- **Red lines** — content that was removed or replaced
+- **Green lines** — content that was added or modified
+- **Line numbers** on both the original and new versions
+- A **file path breadcrumb** at the top of each diff
+
+For each file you have four actions available:
+
+| Action | What It Does |
+|---|---|
+| **Accept** | Applies the entire diff to the working file. |
+| **Reject** | Discards all changes; the file reverts to its previous state. |
+| **Accept Selected** | Opens hunk-level selection so you can accept specific changed blocks. |
+| **Restore Previous Version** | Rolls the file back to the last accepted snapshot. |
+
+### User or Reviewer Agent Inspects the Changed Files
+
+You can read the diff yourself directly in the Diff Viewer. You can also ask an agent to review the changed files — most commonly your **Security Engineer** (read-only, can't touch anything) or a dedicated **Code Reviewer** agent.
+
+To trigger an agent review, mention the agent in the chatroom:
+
+```
+@Security Engineer — please review the changes in src/routes/auth.js
+and src/middleware/requireAuth.js and report your findings.
+```
+
+The agent will call `FILE_READ` on those paths and respond with structured feedback in the chatroom.
+
+<Tip>
+  Create a dedicated **Code Reviewer** agent with `read_files` access only. Give it a system prompt that focuses on code clarity, naming conventions, test coverage, and adherence to your team's style guide. Pair it with the Security Engineer to cover both correctness and security in a single review pass.
+</Tip>
+
+### Reviewer Agent Provides Inline Feedback in the Chatroom
+
+The reviewer agent posts its findings as a structured report. Each finding references a specific file and line number so you can cross-reference it with the diff.
+
+### Developer Agent Applies Corrections
+
+Once the reviewer's feedback is posted, direct the Developer to address specific findings:
+
+```
+@Developer — address the Medium finding from Security Engineer 
+(requireAuth.js line 4) and the naming issue flagged by Code Reviewer 
+(auth.js line 18). Then re-stage the corrected files.
+```
+
+The Developer reads the feedback, edits the files, and the updated diffs replace the originals in the Diff Viewer.
+
+### User Accepts the Final Diff
+
+Once you're satisfied with the corrected diff, click **Accept** on each file (or **Accept All** in the toolbar to apply every staged change at once). The files are written to the working directory and the diff entries are cleared.
+
+</Steps>
+
+---
+
+## Sample Code Review Exchange
+
+The following exchange shows a realistic review pass after the Developer delivers a feature.
+
+---
+
+**💻 Developer** — *3:41 PM*
+> Feature complete. I've written the following files:
+> - `src/services/emailService.js` — sends transactional emails via SMTP
+> - `src/routes/notifications.js` — `POST /notifications/send` endpoint
+> - `tests/notifications.test.js` — 4 unit tests, all passing
+>
+> Changes are staged in Diff Viewer. Ready for review.
+
+---
+
+**You** — *3:42 PM*
+> @Code Reviewer @Security Engineer — please review the staged changes.
+
+---
+
+**📋 Code Reviewer** — *3:42 PM*
+> Reading changed files now.
+>
+> *(reading `src/services/emailService.js`)*
+> *(reading `src/routes/notifications.js`)*
+>
+> **Review Report — Notifications Feature**
+>
+> **`src/services/emailService.js`**
+> - Line 12: `sendMail` is a good name but the function is doing two things — building the message object and sending it. Consider splitting into `buildMessage(opts)` and `send(message)` for testability. *(Low)*
+> - Line 27: Magic number `3` used as retry count. Extract to a named constant `MAX_RETRIES`. *(Low)*
+>
+> **`src/routes/notifications.js`**
+> - Line 8: Request body is not validated before being passed to `emailService`. Add a schema check (e.g., Zod or Joi) to ensure `to`, `subject`, and `body` are present and non-empty. *(Medium)*
+> - Line 22: `console.log` left in after debugging — remove before merge. *(Low)*
+>
+> **Tests** — Good coverage of the happy path. Suggest adding a test for missing `to` field once validation is added.
+>
+> No blocking issues. Recommend addressing the Medium before merge.
+
+---
+
+**🔒 Security Engineer** — *3:43 PM*
+> Reviewing for security concerns.
+>
+> *(reading `src/services/emailService.js`)*
+> *(reading `src/routes/notifications.js`)*
+>
+> **Security Review Report**
+>
+> - **High** — `src/services/emailService.js` line 5: SMTP credentials are read directly from `process.env` without any presence check. If `SMTP_USER` or `SMTP_PASS` are undefined the mailer will attempt an unauthenticated connection and may relay silently. Add startup-time validation.
+> - **Medium** — `src/routes/notifications.js` line 8: Without input validation (also flagged by Code Reviewer), this endpoint is vulnerable to header injection if `to` or `subject` contain newline characters. The Medium finding above directly mitigates this.
+>
+> Address both before merging to a non-development environment.
+
+---
+
+**You** — *3:44 PM*
+> @Developer — address the High and Medium findings. Also fix the console.log and extract the retry constant.
+
+---
+
+**💻 Developer** — *3:44 PM*
+> On it. Reading both files now.
+>
+> *(reading `src/services/emailService.js`)*
+> *(reading `src/routes/notifications.js`)*
+>
+> Changes:
+> - Added startup guard for `SMTP_USER` and `SMTP_PASS` in `emailService.js`
+> - Extracted retry count to `MAX_RETRIES = 3`
+> - Added Zod validation schema for `POST /notifications/send` request body
+> - Removed `console.log` from `notifications.js`
+>
+> *(editing `src/services/emailService.js`)*
+> *(editing `src/routes/notifications.js`)*
+>
+> Updated diffs are staged. Re-running tests to confirm nothing broke.
+>
+> *(running `npm test`)*
+>
+> **5 passed, 0 failed.** ✅ Ready for final review.
+
+---
+
+**🔒 Security Engineer** — *3:45 PM*
+> Re-reading updated files.
+>
+> *(reading `src/services/emailService.js`)*
+> *(reading `src/routes/notifications.js`)*
+>
+> Startup guard is correctly implemented. Zod validation blocks newline injection. **No remaining findings.** ✅
+
+---
+
+**You** — *3:45 PM*
+> Looks good. Accepting all diffs.
+
+*(Click **Accept All** in the Diff Viewer toolbar)*
+
+---
+
+## Tips for Effective Agent-Assisted Reviews
+
+<Accordion title="Separate reviewer roles from developer roles">
+  A reviewer agent that also has write permissions may be tempted to fix issues itself rather than reporting them. Keep reviewer agents strictly read-only so all corrections flow through the Developer, preserving a clear audit trail of who changed what and why.
+</Accordion>
+
+<Accordion title="Use Accept Selected for partial approvals">
+  If a diff contains both an approved feature addition and an unrelated refactor you're not ready to merge, use **Accept Selected** to cherry-pick only the lines you want. The remaining hunks stay staged for a future review cycle.
+</Accordion>
+
+<Accordion title="Stage reviews before merging branches">
+  Trigger a full agent review pass before you merge any branch. The Security Engineer and Code Reviewer can scan an entire diff in seconds — far faster than waiting for CI to complete a full pipeline run.
+</Accordion>
+
+<Accordion title="Restore Previous Version as an escape hatch">
+  If the Developer's corrections introduce new issues, click **Restore Previous Version** on that file to jump back to the last accepted snapshot. You can then give the Developer more targeted instructions without manually undoing changes.
+</Accordion>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Autonomous Development" icon="robot" href="/guides/autonomous-development">
+    Run a complete build-test-fix loop with minimal manual prompting.
+  </Card>
+  <Card title="Multi-Agent Debate" icon="comments" href="/guides/multi-agent-debate">
+    Use structured debate to make architecture decisions before writing code.
+  </Card>
+</CardGroup>

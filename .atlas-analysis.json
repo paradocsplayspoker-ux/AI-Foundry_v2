@@ -1,13 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
+  "projectType": "saas",
+  "projectName": "AI Forge",
+  "projectDescription": "AI Forge is a multi-agent AI development workspace where teams of specialized AI agents collaborate with human directors to plan, build, test, and debug software inside a real IDE with a shared filesystem and terminal.",
   "theme": "luma",
-  "name": "AI Forge",
-  "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
-  },
-  "favicon": "/favicon.svg",
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
   "navigation": {
     "tabs": [
       {
@@ -107,16 +105,35 @@
       }
     ]
   },
-  "navbar": {
-    "primary": {
-      "type": "button",
-      "label": "Launch AI Forge",
-      "href": "https://aiforge.app"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/aiforge"
-    }
-  }
+  "keyFeatures": [
+    "Multi-agent AI team with configurable roles, prompts, and permissions",
+    "Real persistent IDE with Monaco editor and project filesystem",
+    "Integrated terminal for executing real development commands",
+    "Support for multiple AI providers (OpenAI, Anthropic, Gemini, Groq, xAI, OpenRouter, and more)",
+    "Turn-based and autonomous multi-agent orchestration",
+    "Agent-to-agent communication and collaboration",
+    "Structured debate, research, and code-review orchestration modes",
+    "Real-time activity streaming via SSE/WebSockets",
+    "Per-agent permission matrix (read/write/execute/network)",
+    "Diff review and file version snapshots for agent-proposed changes",
+    "Credential isolation — API keys never exposed to the browser",
+    "Project isolation with path-traversal prevention"
+  ],
+  "publicApiSurface": [
+    "GET /api/projects",
+    "POST /api/projects",
+    "GET /api/projects/:id/files",
+    "POST /api/files (create/update/delete)",
+    "GET /api/agents",
+    "POST /api/agents",
+    "PATCH /api/agents/:id",
+    "GET /api/chatrooms",
+    "POST /api/chatrooms",
+    "POST /api/messages",
+    "GET /api/providers",
+    "POST /api/credentials",
+    "POST /api/terminal/execute",
+    "GET /api/activity (SSE stream)",
+    "GET /api/tasks"
+  ]
 }

@@ -1,0 +1,46 @@
+---
+title: "Welcome to AI Forge: Multi-Agent AI Dev Workspace"
+sidebarTitle: "Introduction"
+description: "AI Forge is a collaborative workspace where teams of specialized AI agents help you plan, build, test, and debug software inside a real IDE."
+---
+
+AI Forge is a multi-agent AI development workspace that pairs you — the human director — with a configurable team of specialized AI agents working together inside a real, persistent IDE. Unlike chat-based coding assistants, AI Forge gives your agents actual tools: a live filesystem, a real terminal, and a Monaco code editor, so they can execute commands, read and write files, and ship working software rather than just suggesting it.
+
+## Who AI Forge Is For
+
+AI Forge is built for developers, engineering teams, and technical founders who want to move faster without sacrificing control. Whether you're scaffolding a new service, conducting an automated code review, or orchestrating a research-and-build pipeline, AI Forge keeps you in the driver's seat while your agent team handles the execution.
+
+## Why AI Forge Is Different
+
+Most AI coding tools operate in a sandbox disconnected from your real project. AI Forge is different in three fundamental ways:
+
+**Real agents, real collaboration.** Your agents aren't taking turns answering a single chat prompt — they communicate with each other, debate approaches, delegate tasks, and produce structured outputs through purpose-built orchestration modes like Debate, Code Review, and Autonomous.
+
+**Real IDE.** Every project comes with a persistent filesystem and a Monaco editor with multi-file tabs, syntax highlighting, diff review, and version snapshots. When an agent edits a file, you see the diff and choose to accept or reject it before it lands.
+
+**Real terminal.** Agents can run actual shell commands — install packages, run tests, start servers — with a per-agent permission model that keeps you in control of what executes and when.
+
+## Key Benefits
+
+- **Multi-provider flexibility** — Connect OpenAI, Anthropic, Gemini, Groq, xAI, OpenRouter, or any compatible API. Mix and match models across agents on the same team.
+- **Granular permissions** — Each agent has its own read/write/execute/network permission matrix. An agent can read your codebase without ever being allowed to run shell commands.
+- **Credential isolation** — Your API keys are stored and used server-side. They are never exposed to the browser or to other agents.
+- **Project isolation** — Each project is a self-contained workspace with path-traversal prevention, so agents can't reach outside their assigned directory.
+- **Activity streaming** — Every agent action — file reads, writes, terminal commands, and messages — streams to your activity feed in real time via SSE/WebSockets.
+
+## Explore AI Forge
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Create your first project, connect a provider, and send your first instruction in under five minutes.
+  </Card>
+  <Card title="Core Concepts" icon="book-open" href="/core-concepts">
+    Understand Projects, Agents, Providers, Chatrooms, Orchestration Modes, and the Diff Review system.
+  </Card>
+  <Card title="Workspace Overview" icon="layout-panel-left" href="/workspace/overview">
+    Learn the three-panel IDE layout — file explorer, Monaco editor, agent chatroom, and terminal.
+  </Card>
+  <Card title="Agents Overview" icon="users" href="/agents/overview">
+    Configure agent roles, models, system prompts, and per-agent permission matrices.
+  </Card>
+</CardGroup>
